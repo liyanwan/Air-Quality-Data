@@ -3,7 +3,7 @@
 This repository contains air quality and climate datasets collected for a case study for STAT 946.
 
 ## Data Source
-- Environment and Climate Change Canada (ECCC)
+- Environment and Climate Change Canada
 - Publicly available air quality and climate monitoring data
 
 ## Repository Structure
