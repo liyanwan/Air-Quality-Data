@@ -33,22 +33,27 @@ import json
 import numpy as np
 import pandas as pd
 import joblib
-
+import os
+from pathlib import Path
 from sklearn.metrics import mean_absolute_error, root_mean_squared_error
 
 # ----------------------------
 # Paths (adjust if needed)
 # ----------------------------
-FEATURE_COLS_PATH = "../data/Q1_data/feature_cols.json"
-TEST_ALL_PATH = "../data/Q1_data/test_all.csv"
-ST12008_DAILY_PATH = "../data/Q1_data/station12008_test_daily.csv"
+# Absolute path to this .qmd file (Quarto sets this env var)
+QMD_PATH = Path(os.environ["QUARTO_DOCUMENT_PATH"]).resolve()
+ROOT_DIR = QMD_PATH.parent           # repo root (since report/ is under root)
+
+FEATURE_COLS_PATH = (ROOT_DIR / "data" / "Q1_data" / "feature_cols.json").resolve()
+TEST_ALL_PATH      = (ROOT_DIR / "data" / "Q1_data" / "test_all.csv").resolve()
+ST12008_DAILY_PATH = (ROOT_DIR / "data" / "Q1_data" / "station12008_test_daily.csv").resolve()
 
 MODEL_PATHS = {
-    "OLS": "../model/Q1_models/ols_pipe.joblib",
-    "ElasticNet": "../model/Q1_models/elasticnet_best.joblib",
-    "RF": "../model/Q1_models/rf_best.joblib",
-    "XGBoost": "../model/Q1_models/xgb_best.joblib",
-    "MLP": "../model/Q1_models/mlp_best.joblib",
+    "OLS":       (ROOT_DIR / "model" / "Q1_models" / "ols_pipe.joblib").resolve(),
+    "ElasticNet": (ROOT_DIR / "model" / "Q1_models" / "elasticnet_best.joblib").resolve(),
+    "RF":        (ROOT_DIR / "model" / "Q1_models" / "rf_best.joblib").resolve(),
+    "XGBoost":   (ROOT_DIR / "model" / "Q1_models" / "xgb_best.joblib").resolve(),
+    "MLP":       (ROOT_DIR / "model" / "Q1_models" / "mlp_best.joblib").resolve(),
 }
 
 # ----------------------------
