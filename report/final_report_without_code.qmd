@@ -29,8 +29,6 @@ Across Ontario monitoring locations, how are daily AQI levels associated with da
 
 Understanding the magnitude and seasonal stability of the traffic–pollution relationship informs whether traffic management policies (e.g., congestion pricing, remote-work incentives, peak-hour regulation) can generate measurable next-day AQI improvements. If the association is systematic and stable, it provides an empirical foundation for forecast-driven traffic intervention strategies.
 
-------------------------------------------------------------------------
-
 ## Q2 (Temporal Structure and Heterogeneity)
 
 ### **Research Question**
@@ -40,8 +38,6 @@ How do AQI concentrations vary by hour of day and weekday versus weekend, and do
 ### **Business Meaning**
 
 Identifying intraday and seasonal exposure windows enables time-targeted environmental management. If pollution consistently peaks during specific hours or seasons, advisories and mitigation measures can be deployed with greater precision rather than uniformly across time. Understanding station-level heterogeneity further supports geographically adaptive policy design.
-
-------------------------------------------------------------------------
 
 ## Forecasting Extension
 
