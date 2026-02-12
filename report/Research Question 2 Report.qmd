@@ -1,0 +1,44 @@
+---
+format: pdf
+editor: visual
+---
+
+# 3 Analysis
+
+## 3.1 Key Observations from the Data
+
+### Data Reliability and Scope
+
+Data completeness varies significantly across pollutants. CO (93.29% missing) and SO~2~ (73.20% missing) exhibit structural missingness and are not suitable for robust temporal modeling. In contrast, PM~2.5~, O~3~, and NO~2~ show high completeness (\>93% observed) and form the basis of reliable analysis. Strategic decisions should therefore prioritize pollutants with stable monitoring coverage to ensure statistical reliability and defensible policy development.
+
+### Temporal Structure
+
+Across 39 monitoring stations, AQI follows a strong and repeatable daily pattern characterized by:
+
+-   A primary peak between 6:00–8:00 AM
+-   A midday trough between 12:00–15:00
+-   A secondary rise between 18:00–21:00
+
+The morning surge is the dominant contributor to intra-day variability. This pattern is consistent across stations, indicating structural drivers rather than isolated events.
+
+To mitigate risk, emission-control strategies should focus on morning commute hours, when marginal reductions would likely generate the greatest improvement in daily air quality. Public advisories and exposure guidance should also be calibrated to reflect elevated early-morning risk windows.
+
+### Weekday and Seasonal Effects
+
+Weekdays consistently exhibit higher AQI levels than weekends, particularly during morning peaks. Seasonally, winter shows the highest peak intensity and strongest weekday–weekend divergence, while spring records the lowest overall concentrations. Summer maintains elevated baseline levels, and fall displays moderate variability.
+
+These findings suggest that traffic density and seasonal atmospheric conditions materially influence air quality. Demand-management measures—such as staggered work hours, remote work incentives, and congestion reduction strategies—could meaningfully reduce weekday peaks. Additionally, winter should be treated as a high-risk season, with enhanced monitoring, proactive communication, and potentially short-term mitigation measures deployed during forecasted high-pollution periods. A seasonally adaptive policy approach is likely to be more efficient than uniform year-round controls.
+
+## 3.2 Quantified Effects from Statistical Modeling
+
+A mixed-effects model based on 802,357 hourly observations (with station as a random intercept) confirms that these patterns remain statistically significant after controlling for spatial heterogeneity. Relative to fall, AQI is 0.75 units lower in spring (*p* \< 0.001), 1.23 units higher in summer (*p* \< 0.001), and 0.66 units higher in winter (*p* \< 0.001). Weekends are associated with a 1.05-unit reduction relative to weekdays (*p* \< 0.001). Between-station variance (\~4.85) indicates meaningful spatial differences, but temporal effects remain robust.
+
+A Generalized Additive Model further confirms strong nonlinear hourly effects and significant hour–season interactions, demonstrating that daily AQI cycles vary meaningfully by season rather than following a uniform structure. Operational planning should therefore avoid assuming constant daily risk profiles across the year.
+
+Finally, the XGBoost predictive model achieved an out-of-sample RMSE of 3.49 AQI units, indicating strong short-term forecasting performance. This level of accuracy supports the practical deployment of early warning systems and targeted public advisories.
+
+## 3.3 Strategic Summary
+
+The evidence consistently shows that AQI dynamics are structured, nonlinear, and seasonally modulated rather than random. Morning commute hours—particularly in winter—represent the most critical exposure window. Weekday activity materially elevates pollution levels, and spatial differences influence magnitude but not the underlying temporal structure.
+
+Targeted, time-specific, and seasonally calibrated interventions are therefore likely to deliver the greatest impact. Leveraging predictive modeling to anticipate high-risk periods can further enhance proactive risk management and public communication strategies.
