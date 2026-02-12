@@ -1,0 +1,172 @@
+---
+title: "One-Step AQI Forecasting Model Evaluation"
+author: "Binghong Chen"
+format:
+  html:
+    toc: false
+    number-sections: false
+    df-print: paged
+  pdf:
+    toc: false
+    number-sections: false
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+
+## Models Evaluated
+
+We compared a linear baseline against more flexible nonlinear models:
+
+- **OLS** and **ElasticNet:** fast, stable baselines; ElasticNet adds regularization to mitigate overfitting.
+- **Random Forest** and **XGBoost:** nonlinear tree models intended to capture interactions and nonlinearities.
+- **Neural Networks (MLP):** 1–3 hidden-layer variants to model complex nonlinear patterns.
+
+In prior exploratory work, we also tested using a first-difference target (ΔAQI) instead of level AQI; **the qualitative ranking and conclusions remained similar**, so we report the level-AQI results for interpretability and operational simplicity.
+
+## Test-Set Performance (All Stations)
+
+```{python, echo=False, warning=False, message=False}
+import json
+import numpy as np
+import pandas as pd
+import joblib
+
+from sklearn.metrics import mean_absolute_error, root_mean_squared_error
+
+# ----------------------------
+# Paths (adjust if needed)
+# ----------------------------
+FEATURE_COLS_PATH = "../data/Q1_data/feature_cols.json"
+TEST_ALL_PATH = "../data/Q1_data/test_all.csv"
+ST12008_DAILY_PATH = "../data/Q1_data/station12008_test_daily.csv"
+
+MODEL_PATHS = {
+    "OLS": "../model/Q1_models/ols_pipe.joblib",
+    "ElasticNet": "../model/Q1_models/elasticnet_best.joblib",
+    "RF": "../model/Q1_models/rf_best.joblib",
+    "XGBoost": "../model/Q1_models/xgb_best.joblib",
+    "MLP": "../model/Q1_models/mlp_best.joblib",
+}
+
+# ----------------------------
+# Load feature list + data
+# ----------------------------
+feature_cols = json.load(open(FEATURE_COLS_PATH, "r"))
+
+test_all = pd.read_csv(TEST_ALL_PATH, parse_dates=["Date"])
+test_all["Station ID"] = test_all["Station ID"].astype(str)
+
+# Load pretrained models
+models = {name: joblib.load(path) for name, path in MODEL_PATHS.items()}
+
+# Build test matrix
+X_test = test_all[feature_cols + ["Station ID"]].copy()
+y_test = test_all["AQI"].to_numpy()
+
+# Evaluate
+rows = []
+for name, m in models.items():
+    y_pred = m.predict(X_test)
+    rows.append({
+        "model": name,
+        "RMSE_test": root_mean_squared_error(y_test, y_pred),
+        "MAE_test": mean_absolute_error(y_test, y_pred),
+    })
+
+metrics_df = pd.DataFrame(rows).sort_values("RMSE_test").reset_index(drop=True)
+metrics_df
+```
+
+**Interpretation.** The linear baseline (OLS) outperforms the nonlinear alternatives on the full test set. ElasticNet is very close, suggesting the signal is largely linear and stable. More complex models do not yield meaningful improvements under the current feature set and forecasting horizon.
+
+## Station-Level Diagnostic (Station 12008)
+
+The figure below visualizes how each model tracks the observed AQI time series for a representative station during the test period (top: actual vs predicted; bottom: prediction error).
+
+```{python, echo=False, warning=False, message=False}
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+
+# Load daily test series for station 12008 (already aggregated by Date)
+st = pd.read_csv(ST12008_DAILY_PATH, parse_dates=["Date"])
+st = st.sort_values("Date")
+
+station_id = "12008"
+
+X_station = st[feature_cols].copy()
+X_station["Station ID"] = station_id
+
+dates = st["Date"].to_numpy()
+y_true = st["AQI"].to_numpy()
+
+preds = {name: m.predict(X_station) for name, m in models.items()}
+
+# ---- Plot: small multiples + error ----
+model_names = list(preds.keys())
+n = len(model_names)
+ncols = 2
+nrows_top = int(np.ceil(n / ncols))
+
+fig = plt.figure(figsize=(16, 4 * nrows_top + 4))
+gs = fig.add_gridspec(nrows=nrows_top + 1, ncols=ncols, height_ratios=[1] * nrows_top + [1.2])
+
+locator = mdates.AutoDateLocator(minticks=4, maxticks=8)
+formatter = mdates.ConciseDateFormatter(locator)
+
+# Emphasize predictions
+actual_kwargs = dict(label="Actual", linewidth=1.6, alpha=0.45, zorder=2)
+pred_kwargs = dict(linewidth=3.0, alpha=0.95, zorder=3)
+
+# Top: small multiples
+for i, name in enumerate(model_names):
+    r, c = divmod(i, ncols)
+    ax = fig.add_subplot(gs[r, c])
+
+    ax.plot(dates, y_true, **actual_kwargs)
+    ax.plot(dates, preds[name], label=f"{name} (Pred)", **pred_kwargs)
+
+    ax.set_title(name)
+    ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(formatter)
+    ax.tick_params(axis="x", rotation=30)
+    ax.grid(True, alpha=0.25)
+    ax.legend(loc="upper right")
+
+# Hide unused cells
+for j in range(n, nrows_top * ncols):
+    r, c = divmod(j, ncols)
+    ax = fig.add_subplot(gs[r, c])
+    ax.axis("off")
+
+# Bottom: error plot
+ax_err = fig.add_subplot(gs[nrows_top, :])
+for name in model_names:
+    err = np.asarray(preds[name]) - y_true
+    ax_err.plot(dates, err, label=name, alpha=0.9)
+
+ax_err.axhline(0, linewidth=1)
+ax_err.set_title("Prediction Error (Pred - Actual)")
+ax_err.set_ylabel("Error")
+ax_err.xaxis.set_major_locator(locator)
+ax_err.xaxis.set_major_formatter(formatter)
+ax_err.tick_params(axis="x", rotation=30)
+ax_err.grid(True, alpha=0.25)
+ax_err.legend(ncol=3, loc="upper right")
+
+fig.suptitle(f"Station {station_id} (Test Period): Small Multiples + Error", y=1.02, fontsize=14)
+fig.tight_layout()
+plt.show()
+```
+
+**Interpretation.** Predictions tend to move with the observed AQI, but all models exhibit highly overlapping error spikes on a small number of dates. This suggests the dominant sources of forecast error are shared across model families—consistent with missing drivers or regime changes that are not captured by the current weather/traffic lag features. In such settings, increasing model complexity alone is unlikely to deliver large gains.
+
+## Key Takeaways and Next Steps
+
+1. **Strong linear structure:** The best-performing model is linear (OLS), with ElasticNet close behind. This indicates a predominantly linear relationship between AQI and lagged predictors at the one-day horizon.
+2. **Shared failure modes across models:** Error series are strongly aligned, implying common hard-to-predict periods (likely extreme-event days).
+3. **Recommended actions:**
+   - Use OLS/ElasticNet as the production baseline (stable, interpretable, efficient).
+   - Include more features that may capture extreme-event drivers (e.g., wildfire smoke plumes, dust storms) to address the dominant source of forecast error.
