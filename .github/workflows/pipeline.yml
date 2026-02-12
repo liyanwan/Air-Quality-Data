@@ -34,6 +34,10 @@ jobs:
       - name: Install Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
+      - name: Install TinyTeX for PDF rendering
+        run: |
+          quarto install tinytex --update-path
+
       # Step 1: Run notebooks to generate figures
       - name: Execute Q2 notebook (generate figures)
         run: |
@@ -50,10 +54,14 @@ jobs:
         run: |
           quarto render "report/Research Question 2 Report.qmd"
 
+      - name: List rendered outputs
+        run: |
+          ls -la report/*.pdf
+
       # Upload reports as artifacts
       - name: Upload Q2 Report
         uses: actions/upload-artifact@v4
         with:
           name: q2-report-pdf
-          path: "report/Research Question 2 Report.pdf"
+          path: report/*.pdf
           if-no-files-found: error
