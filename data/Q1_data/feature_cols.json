@@ -1,0 +1,1 @@
+["MeanTemp_lag1", "MeanTemp_lag7", "TotalPrecip_lag1", "TotalPrecip_lag7", "TempRange_lag1", "TempRange_lag7", "traffic_scaled_lag1", "traffic_scaled_lag7", "AQI_lag1", "AQI_lag7", "AQI_lag14", "AQI_rm7", "AQI_rm14", "AQI_rs7", "traffic_scaled_rm7", "month", "dow", "doy_sin", "doy_cos"]
