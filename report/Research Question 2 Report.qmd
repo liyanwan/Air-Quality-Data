@@ -11,6 +11,8 @@ editor: visual
 
 Data completeness varies significantly across pollutants. CO (93.29% missing) and SO~2~ (73.20% missing) exhibit structural missingness and are not suitable for robust temporal modeling. In contrast, PM~2.5~, O~3~, and NO~2~ show high completeness (\>93% observed) and form the basis of reliable analysis. Strategic decisions should therefore prioritize pollutants with stable monitoring coverage to ensure statistical reliability and defensible policy development.
 
+![Proportion of missing values by pollutant.](../outputs/figures/q2_fig1_missing_values.png){width=70%}
+
 ### Temporal Structure
 
 Across 39 monitoring stations, AQI follows a strong and repeatable daily pattern characterized by:
@@ -21,17 +23,27 @@ Across 39 monitoring stations, AQI follows a strong and repeatable daily pattern
 
 The morning surge is the dominant contributor to intra-day variability. This pattern is consistent across stations, indicating structural drivers rather than isolated events.
 
+![Average Max AQI by hour of day across all Ontario stations.](../outputs/figures/q2_fig2_hourly_aqi.png){width=80%}
+
 To mitigate risk, emission-control strategies should focus on morning commute hours, when marginal reductions would likely generate the greatest improvement in daily air quality. Public advisories and exposure guidance should also be calibrated to reflect elevated early-morning risk windows.
 
 ### Weekday and Seasonal Effects
 
 Weekdays consistently exhibit higher AQI levels than weekends, particularly during morning peaks. Seasonally, winter shows the highest peak intensity and strongest weekday–weekend divergence, while spring records the lowest overall concentrations. Summer maintains elevated baseline levels, and fall displays moderate variability.
 
+![Hourly AQI comparison: weekday vs weekend.](../outputs/figures/q2_fig3_weekday_weekend.png){width=80%}
+
+![Average daily AQI pattern by season.](../outputs/figures/q2_fig5_seasonal_pattern.png){width=80%}
+
+![Weekday vs weekend AQI patterns across seasons.](../outputs/figures/q2_fig7_weekday_weekend_season.png){width=90%}
+
 These findings suggest that traffic density and seasonal atmospheric conditions materially influence air quality. Demand-management measures—such as staggered work hours, remote work incentives, and congestion reduction strategies—could meaningfully reduce weekday peaks. Additionally, winter should be treated as a high-risk season, with enhanced monitoring, proactive communication, and potentially short-term mitigation measures deployed during forecasted high-pollution periods. A seasonally adaptive policy approach is likely to be more efficient than uniform year-round controls.
 
 ## 3.2 Quantified Effects from Statistical Modeling
 
 A mixed-effects model based on 802,357 hourly observations (with station as a random intercept) confirms that these patterns remain statistically significant after controlling for spatial heterogeneity. Relative to fall, AQI is 0.75 units lower in spring (*p* \< 0.001), 1.23 units higher in summer (*p* \< 0.001), and 0.66 units higher in winter (*p* \< 0.001). Weekends are associated with a 1.05-unit reduction relative to weekdays (*p* \< 0.001). Between-station variance (\~4.85) indicates meaningful spatial differences, but temporal effects remain robust.
+
+![Residuals vs fitted values for the mixed-effects model.](../outputs/figures/q2_fig4_residuals.png){width=70%}
 
 A Generalized Additive Model further confirms strong nonlinear hourly effects and significant hour–season interactions, demonstrating that daily AQI cycles vary meaningfully by season rather than following a uniform structure. Operational planning should therefore avoid assuming constant daily risk profiles across the year.
 
