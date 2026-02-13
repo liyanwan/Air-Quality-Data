@@ -38,30 +38,39 @@ jobs:
         run: |
           quarto install tinytex --update-path
 
-      # Step 1: Run notebooks to generate figures
+      # Step 1: Run scripts/notebooks to generate figures
+      - name: Run Q1 script (generate table + figure)
+        run: |
+          uv run python scripts/Q1_script.py
+
+      - name: Verify Q1 artifacts generated
+        run: |
+          ls scripts/output/q1_*.csv scripts/output/q1_*.png
+
       - name: Execute Q2 notebook (generate figures)
         run: |
           uv run jupyter nbconvert --to notebook --execute --inplace \
             "model/Model Fitting to question 2.ipynb" \
             --ExecutePreprocessor.timeout=600
 
-      - name: Verify figures generated
+      - name: Verify Q2 figures generated
         run: |
           ls outputs/figures/q2_*.png
 
-      # Step 2: Render Quarto reports
-      - name: Render Q2 report
+      # Step 2: Render Quarto reports (activate venv so Quarto finds jupyter + pandas)
+      - name: Render final report
         run: |
-          quarto render "report/Research Question 2 Report.qmd"
+          source .venv/bin/activate
+          quarto render "report/final_report_without_code.qmd"
 
       - name: List rendered outputs
         run: |
           ls -la report/*.pdf
 
       # Upload reports as artifacts
-      - name: Upload Q2 Report
+      - name: Upload Final Report
         uses: actions/upload-artifact@v4
         with:
-          name: q2-report-pdf
-          path: report/*.pdf
+          name: final-report-pdf
+          path: report/final_report_without_code.pdf
           if-no-files-found: error

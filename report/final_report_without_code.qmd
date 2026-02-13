@@ -124,6 +124,16 @@ Hourly AQI demonstrates a highly structured diurnal cycle consistent across 39 m
 
 The morning peak represents the largest intraday deviation from baseline and aligns temporally with commuting activity.
 
+![Average Max AQI by hour of day across all Ontario stations.](../outputs/figures/q2_fig2_hourly_aqi.png){width="80%"}
+
+Weekdays consistently exhibit higher AQI levels than weekends, particularly during morning peaks. Seasonally, winter shows the highest peak intensity and strongest weekday–weekend divergence, while spring records the lowest overall concentrations.
+
+![Hourly AQI comparison: weekday vs weekend.](../outputs/figures/q2_fig3_weekday_weekend.png){width="80%"}
+
+![Average daily AQI pattern by season.](../outputs/figures/q2_fig5_seasonal_pattern.png){width="80%"}
+
+![Weekday vs weekend AQI patterns across seasons.](../outputs/figures/q2_fig7_weekday_weekend_season.png){width="90%"}
+
 The mixed-effects model confirms these patterns remain statistically significant after controlling for station heterogeneity (between-station variance ≈ 4.85). Relative to fall:
 
 -   Spring AQI is 0.75 units lower (*p* \< 0.001)
@@ -131,6 +141,8 @@ The mixed-effects model confirms these patterns remain statistically significant
 -   Winter AQI is 0.66 units higher (*p* \< 0.001)
 
 Weekends are associated with a 1.05-unit reduction relative to weekdays (*p* \< 0.001).
+
+![Residuals vs fitted values for the mixed-effects model.](../outputs/figures/q2_fig4_residuals.png){width="70%"}
 
 These are not marginal differences—they are systematic, highly significant, and persistent after spatial adjustment. The weekday effect directly supports the interpretation that anthropogenic activity, particularly traffic, materially elevates pollution levels.
 
