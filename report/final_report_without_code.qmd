@@ -87,7 +87,7 @@ For our first research question, we implemented a one-step-ahead forecasting fra
 
 ### 4.2.2 Models for Q2: Temporal Structure and Heterogeneity
 
-For our second research question, we adopted a hierarchical modeling strategy to isolate structural time effects. A mixed-effects model incorporated station as a random intercept to quantify between-station heterogeneity while estimating fixed effects for season and weekday. To capture nonlinear diurnal structure, a Generalized Additive Model (GAM) was fitted with smooth hourly terms and hour–season interactions. Finally, XGBoost was used to assess short-term predictive capability under nonlinear feature interactions. This multi-model approach allows us to distinguish linear structural relationships from nonlinear seasonal modulation while evaluating predictive robustness.
+For our second research question, we adopted a hierarchical modelling strategy to isolate structural time effects. A mixed-effects model incorporated station as a random intercept to quantify between-station heterogeneity while estimating fixed effects for season and weekday. To capture nonlinear diurnal structure, a Generalized Additive Model (GAM) was fitted with smooth hourly terms and hour–season interactions. Finally, XGBoost was used to assess short-term predictive capability under nonlinear feature interactions. This multi-model approach allows us to distinguish linear structural relationships from nonlinear seasonal modulation while evaluating predictive robustness.
 
 # 5 Results
 
@@ -101,16 +101,16 @@ metrics_df = pd.read_csv("../scripts/output/q1_table1_test_metrics.csv")
 metrics_df
 ```
 
-This finding is analytically important: despite allowing for nonlinear interactions and high model flexibility, complex models did not outperform a linear specification. This indicates that, conditional on lagged traffic and meteorological variables, the dominant next-day AQI signal is approximately linear. The bias–variance trade-off favors lower-variance linear estimators under the current feature set. Note that In prior exploratory work, we also tested using a first-difference target (ΔAQI) instead of level AQI, the qualitative ranking and conclusions remained similar.
+This finding is analytically important: despite allowing for nonlinear interactions and high model flexibility, complex models did not outperform a linear specification. This indicates that, conditional on lagged traffic and meteorological variables, the dominant next-day AQI signal is approximately linear. The bias–variance trade-off favours lower-variance linear estimators under the current feature set. Note that in prior exploratory work, we also tested using a first-difference target (ΔAQI) instead of level AQI; the qualitative ranking and conclusions remained similar.
 
 ![Station 12008: forecasts vs actual (top) and prediction errors (bottom) over the test period.](../scripts/output/q1_fig1_station12008_small_multiples_error.png){width="90%"}
 
-Station-level diagnostics reinforce this conclusion. In this plot we picked one of the stations and showed the predicted vs actual AQI. We can see that prediction errors across model families exhibit strong temporal alignment, with error spikes occurring simultaneously. This pattern implies shared structural blind spots—likely extreme-event days or unobserved transport phenomena—rather than model mis-specification. Increasing algorithmic complexity therefore cannot compensate for missing explanatory drivers.
+Station-level diagnostics reinforce this conclusion. In this plot, we picked one of the stations and showed the predicted vs actual AQI. We can see that prediction errors across model families exhibit strong temporal alignment, with error spikes occurring simultaneously. This pattern implies shared structural blind spots—likely extreme-event days or unobserved transport phenomena—rather than model mis-specification. Increasing algorithmic complexity; therefore, cannot compensate for missing explanatory drivers.
 
 From a policy perspective, the results provide empirical evidence that:
 
--   The next-day AQI is highly correlated with the current-day AQI. We can see even our best model (OLS) do behave not much better than the naive model.
--   There are strong linear relationship between the current-day weather & traffic vs next-day AQI. And complex models like NN and XGBoost capture that relationship worse than simple models like OLS.
+-   The next-day AQI is highly correlated with the current-day AQI. We can see that even our best model (OLS) does not do much better than the naive model.
+-   There are strong linear relationship between the current-day weather & traffic vs the next-day AQI. And complex models like NN and XGBoost capture that relationship worse than simple models like OLS.
 
 This strengthens the case for deploying linear forecasting models in operational settings.
 
@@ -130,8 +130,6 @@ Weekdays consistently exhibit higher AQI levels than weekends, particularly duri
 
 ![Hourly AQI comparison: weekday vs weekend.](../outputs/figures/q2_fig3_weekday_weekend.png){width="80%"}
 
-![Average daily AQI pattern by season.](../outputs/figures/q2_fig5_seasonal_pattern.png){width="80%"}
-
 ![Weekday vs weekend AQI patterns across seasons.](../outputs/figures/q2_fig7_weekday_weekend_season.png){width="90%"}
 
 The mixed-effects model confirms these patterns remain statistically significant after controlling for station heterogeneity (between-station variance ≈ 4.85). Relative to fall:
@@ -139,7 +137,7 @@ The mixed-effects model confirms these patterns remain statistically significant
 -   Spring AQI is 0.75 units lower (*p* \< 0.001)
 -   Summer AQI is 1.23 units higher (*p* \< 0.001)
 -   Winter AQI is 0.66 units higher (*p* \< 0.001)
-
+![Average daily AQI pattern by season.](../outputs/figures/q2_fig5_seasonal_pattern.png){width="80%"}
 Weekends are associated with a 1.05-unit reduction relative to weekdays (*p* \< 0.001).
 
 ![Residuals vs fitted values for the mixed-effects model.](../outputs/figures/q2_fig4_residuals.png){width="70%"}
@@ -148,7 +146,7 @@ These are not marginal differences—they are systematic, highly significant, an
 
 The GAM further reveals strong nonlinear hourly effects and significant hour–season interactions. In practical terms, the shape and amplitude of the daily AQI curve differ meaningfully across seasons. Winter mornings exhibit both higher levels and steeper gradients, suggesting reduced dispersion and amplified emission impact.
 
-Predictive modeling at the hourly level achieved an out-of-sample RMSE of approximately 3.5 AQI units, demonstrating that nonlinear interactions can be exploited for operational forecasting.
+Predictive modelling at the hourly level achieved an out-of-sample RMSE of approximately 3.5 AQI units, demonstrating that nonlinear interactions can be exploited for operational forecasting.
 
 Taken together, the evidence shows:
 
@@ -163,23 +161,23 @@ These findings strongly corroborate and complement the Q1 daily results: traffic
 
 The analysis focuses on April 2022 to September 2024, the period with reliable traffic coverage. While this ensures consistency across datasets, the findings reflect conditions during this specific window and may not capture longer-term shifts. Traffic and weather data are linked to air quality stations using nearby sources within a 10 km radius. This improves local relevance but remains an approximation, introducing some unavoidable measurement noise.
 
-Also, pollutants such as CO and SO~2~ exhibit structural missingness and were excluded from temporal modeling, limiting pollutant diversity. Second, extreme-event days produce synchronized forecast errors across models, indicating missing drivers such as wildfire smoke transport or regional inflow. Third, residual heteroskedasticity suggests that volatility increases during peak seasons, potentially understating uncertainty under linear assumptions.
+Also, pollutants such as CO and SO~2~ exhibit structural missingness and were excluded from temporal modelling, limiting pollutant diversity. Second, extreme-event days produce synchronized forecast errors across models, indicating missing drivers such as wildfire smoke transport or regional inflow. Third, residual heteroskedasticity suggests that volatility increases during peak seasons, potentially understating uncertainty under linear assumptions.
 
-Finally, model performance is constrained more by feature completeness than algorithm choice. Without incorporating additional environmental or transport covariates, predictive gains will remain incremental.
+Finally, model performance is constrained more by feature completeness than by algorithm choice. Without incorporating additional environmental or transport covariates, predictive gains will remain incremental.
 
 # 7 Recommendations
 
 ## 7.1 Standardize a Production Forecasting Model
 
-Deploy OLS/ElasticNet as the official next-day AQI forecasting baseline. It delivers the best out-of-sample performance with full interpretability and low operational complexity. The production forecasting model should be operationalize the forecasting model through automated daily retraining with a rolling window, continuous performance monitoring (e.g., RMSE drift and residual checks), and predefined forecast thresholds that directly trigger air-quality advisories and targeted mitigation actions. This establishes a stable analytics foundation for municipal and provincial advisory systems.
+Deploy OLS/ElasticNet as the official next-day AQI forecasting baseline. It delivers the best out-of-sample performance with full interpretability and low operational complexity. The production forecasting model should be operationalized through automated daily retraining with a rolling window, continuous performance monitoring (e.g., RMSE drift and residual checks), and predefined forecast thresholds that directly trigger air-quality advisories and targeted mitigation actions. This establishes a stable analytics foundation for municipal and provincial advisory systems.
 
 ## 7.2 Target High-Risk Time Windows
 
 Winter weekday mornings (6:00–8:00 AM) represent the most structurally elevated pollution window. Interventions should be time-specific rather than broad and seasonal. Interventions should be forecast-driven: trigger targeted advisories when predicted AQI exceeds defined risk bands, coordinate short-term traffic mitigation on anticipated peak days, and pilot staggered work-hour programs in high-density corridors to reduce morning congestion impacts. This aligns intervention intensity with statistically identified risk periods.
 
-## 7.3 Integrate Traffic Policy with Environmental Impact Modeling
+## 7.3 Integrate Traffic Policy with Environmental Impact Modelling
 
-The persistent weekday effect confirms measurable anthropogenic influence. Analytics teams should support scenario modeling to quantify AQI impact under traffic reductions (e.g., 5–10% peak-hour decrease). This enables evidence-based evaluation of congestion pricing, remote-work incentives and traffic flow optimization. Policy discussions should be supported by modeled air-quality impact estimates rather than descriptive trends.
+The persistent weekday effect confirms measurable anthropogenic influence. Analytics teams should support scenario modelling to quantify AQI impact under traffic reductions (e.g., 5–10% peak-hour decrease). This enables evidence-based evaluation of congestion pricing, remote-work incentives and traffic flow optimization. Policy discussions should be supported by modelled air-quality impact estimates rather than descriptive trends.
 
 ## 7.4 Strengthen Extreme-Event Detection
 
