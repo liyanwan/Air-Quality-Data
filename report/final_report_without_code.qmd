@@ -137,7 +137,9 @@ The mixed-effects model confirms these patterns remain statistically significant
 -   Spring AQI is 0.75 units lower (*p* \< 0.001)
 -   Summer AQI is 1.23 units higher (*p* \< 0.001)
 -   Winter AQI is 0.66 units higher (*p* \< 0.001)
+
 ![Average daily AQI pattern by season.](../outputs/figures/q2_fig5_seasonal_pattern.png){width="80%"}
+
 Weekends are associated with a 1.05-unit reduction relative to weekdays (*p* \< 0.001).
 
 ![Residuals vs fitted values for the mixed-effects model.](../outputs/figures/q2_fig4_residuals.png){width="70%"}
