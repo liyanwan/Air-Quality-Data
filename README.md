@@ -1,94 +1,219 @@
-# Air Quality Data
+# Air-Quality-Data
 
-This repository contains air quality and climate datasets collected for a case study for STAT 946.
+This repository contains the full analytical pipeline, modeling framework, and reporting outputs for our Ontario air quality study. The project addresses two primary research questions:
 
-## Data Source
-- Environment and Climate Change Canada
-- Publicly available air quality and climate monitoring data
+- **Q1** – How daily pollutant levels (focus: NO / AQI) are associated with traffic volume after controlling for meteorology, and whether the relationship varies by season.
+- **Q2** – How pollutant concentrations vary by hour of day and weekday vs weekend, and whether these temporal patterns differ by season or station.
+
+The repository is structured to support **reproducibility, modular development, and automated reporting** via GitHub Actions (uv + Quarto).
 
 ## Repository Structure
-Air-Quality-Data/\
-|-- data/\
-|  |-- Calgary_Edmonton_PM25.csv\
-|  |-- Kitchener_PM25.csv\
-|  |-- climate_summaries.csv\
-|  |-- README.md\
-|-- README.md
 
-## Datasets
-- **Calgary_Edmonton_PM25.csv**: PM2.5 concentration levels for Calgary and Edmonton
-- **Kitchener_PM25.csv**: PM2.5 measurements for Kitchener
-- **climate_summaries.csv**: Daily temperature and precipitation summaries
-
-## Data Dictionary
-Variable definitions, units, and missing value explanations are provided in `data/README.md`.
-
-## Usage
-The datasets are intended for exploratory data analysis and statistical case studies.
-
-## File Format
-- CSV
-
-## Pipeline: Adding Figures to a Quarto Report
-
-This project uses a two-step pipeline: a Jupyter notebook generates and saves figures, then the `.qmd` report references those saved images. Follow these steps to add new figures.
-
-### Step 1: Save figures from your notebook
-
-In your Jupyter notebook (e.g. `model/Model Fitting to question 2.ipynb`), save each figure as a `.png` to `outputs/figures/`:
-
-```python
-import matplotlib.pyplot as plt
-import os
-
-os.makedirs("outputs/figures", exist_ok=True)
-
-fig, ax = plt.subplots()
-ax.plot(x, y)
-fig.savefig("outputs/figures/q2_fig8_my_new_plot.png", dpi=150, bbox_inches="tight")
-plt.close(fig)
+```text
+Air-Quality-Data/
+│
+├── .github/workflows/
+│   ├── README.md
+│   └── pipeline.yml
+│
+├── analysis/
+│   ├── 00_smoke_test.py
+│   ├── AQProcess.ipynb
+│   ├── Merge.ipynb
+│   ├── Q1.ipynb
+│   ├── WX_TRProcess.ipynb
+│   └── README.md
+│
+├── data/
+│   ├── Q1_data/
+│   │   ├── cutoff.csv
+│   │   ├── feature_cols.json
+│   │   ├── station12008_test_daily.csv
+│   │   └── test_all.csv
+│   │
+│   ├── AirQuality_ON_2022_2024.csv
+│   ├── Hourly_AQI_EPA.xlsb
+│   ├── merged_10km_daily_updated.csv
+│   ├── traffic_ON_2022_2024.csv
+│   └── weather_ON_2022_2024.csv
+│
+├── model/
+│   ├── Q1_models/
+│   │   ├── elasticnet_best.joblib
+│   │   ├── mlp_best.joblib
+│   │   ├── ols_pipe.joblib
+│   │   └── xgb_best.joblib
+│   │
+│   ├── Model Fitting to question 2.ipynb
+│   ├── Q1.ipynb
+│   └── README.md
+│
+├── outputs/
+│   └── figures/
+│       └── .gitkeep
+│
+└── report/
+    ├── Q1_report.qmd
+    ├── Research Question 2 Report.qmd
+    ├── Synthesized Report.qmd
+    ├── final_report_with_code_included.pdf
+    ├── final_report_with_code_included.qmd
+    ├── final_report_without_code.pdf
+    ├── final_report_without_code.qmd
+    └── test_report.qmd
 ```
 
-Use a consistent naming convention: `q<question>_fig<number>_<description>.png`.
+# Data Sources
 
-### Step 2: Reference the figure in the `.qmd` file
+The analysis integrates the following datasets:
 
-In your Quarto report (e.g. `report/Research Question 2 Report.qmd`), insert the image using a relative path from the `report/` folder:
+### 1. Ontario Air Quality Data (2022–2024)
+- Source: Ontario Ministry of the Environment
+- File: `AirQuality_ON_2022_2024.csv`
+- Hourly station-level pollutant measurements
 
-```markdown
-![Your caption here.](../outputs/figures/q2_fig8_my_new_plot.png){width=80%}
-```
+### 2. EPA AQI Reference
+- File: `Hourly_AQI_EPA.xlsb`
+- Used for AQI standardization and validation
 
-- `width=80%` controls the display size (adjust as needed).
-- The path must start with `../outputs/figures/` since the `.qmd` lives in `report/`.
+### 3. Traffic Data (Ontario, 2022–2024)
+- File: `traffic_ON_2022_2024.csv`
+- Aggregated traffic camera volume data
 
-### Step 3: Run the pipeline
+### 4. Weather Data (Ontario, 2022–2024)
+- File: `weather_ON_2022_2024.csv`
+- Includes temperature, wind speed, humidity
 
-**Locally:**
+### 5. Spatially Merged Dataset
+- File: `merged_10km_daily_updated.csv`
+- Left-joined dataset linking AQI stations to traffic and weather within a 10 km radius
 
-```bash
-# 1. Execute the notebook (generates/updates figures)
-jupyter nbconvert --to notebook --execute --inplace "model/Model Fitting to question 2.ipynb"
+### Q1 Modeling Subset
+Located in `data/Q1_data/`:
+- Pre-split train/test data
+- Feature definitions (`feature_cols.json`)
+- Station-level evaluation data
 
-# 2. Render the Quarto report
-quarto render "report/Research Question 2 Report.qmd"
-```
+# Processing Pipeline
 
-Or use the convenience script:
+All major processing steps are modularized under `analysis/`.
 
-```bash
-bash scripts/run.sh
-```
+### Step 1 – AQI Processing
+**AQProcess.ipynb**
+- Cleans and standardizes AQI
+- Handles missing values
+- Produces structured station-level dataset
 
-**On CI:** The GitHub Actions workflow (`.github/workflows/pipeline.yml`) runs both steps automatically on push to `main`.
+### Step 2 – Weather & Traffic Processing
+**WX_TRProcess.ipynb**
+- Aggregates weather + traffic
+- Constructs lag features
+- Groups by station within 10 km radius
 
-### Summary
+### Step 3 – Data Merge
+**Merge.ipynb**
+- Left joins AQI with weather and traffic
+- Ensures temporal alignment
+- Produces modeling-ready dataset
 
-| Step | What to do | Where |
-|------|-----------|-------|
-| 1 | `fig.savefig("outputs/figures/q2_fig8_name.png")` | Jupyter notebook |
-| 2 | `![Caption](../outputs/figures/q2_fig8_name.png){width=80%}` | `.qmd` file |
-| 3 | Run `scripts/run.sh` or push to `main` | Terminal / GitHub |
+### Step 4 – Q1 Modeling
+**analysis/Q1.ipynb**
+- Time-based split
+- Model training (OLS, ElasticNet, RF, XGBoost, MLP)
+- Out-of-sample evaluation
 
-## License
-This data is publicly available and intended for academic use.
+### Step 5 – Q2 Modeling
+**model/Model Fitting to question 2.ipynb**
+- Mixed-effects modeling
+- GAM for nonlinear time effects
+- XGBoost forecasting benchmark
+
+
+# Pretrained Models
+
+Located under: `model/Q1_models/`
+
+These include:
+- `ols_pipe.joblib`
+- `elasticnet_best.joblib`
+- `xgb_best.joblib`
+- `mlp_best.joblib`
+
+These models are stored to avoid recomputing resource-intensive training during CI runs.
+
+Heavy computations such as:
+- Hyperparameter tuning
+- Cross-validation
+- Out-of-sample model selection  
+
+are not rerun in CI. Instead, pretrained artifacts are loaded for evaluation and reporting.
+
+
+# Reports
+
+All Quarto reports are under:`report`
+
+These include:
+- `ols_pipe.joblib`
+- `elasticnet_best.joblib`
+- `xgb_best.joblib`
+- `mlp_best.joblib`
+
+These models are stored to avoid recomputing resource-intensive training during CI runs.
+
+Heavy computations such as:
+- Hyperparameter tuning
+- Cross-validation
+- Out-of-sample model selection  
+
+are not rerun in CI. Instead, pretrained artifacts are loaded for evaluation and reporting.
+
+
+# Reports
+
+All Quarto reports are under: `.github/workflows/pipeline.yml`
+
+This pipeline:
+- Installs dependencies via uv
+- Runs smoke tests
+- Executes Quarto rendering
+- Regenerates reports
+
+Estimated runtime: **~3 minutes**
+
+
+# How to Run the Repository (Professor Instructions)
+
+1. Go to the **Actions** tab at the top of the repository.
+2. In the left-hand sidebar, click **“Analysis Pipeline (uv + Quarto)”**.
+3. Click **“Run workflow”**.
+4. Click the green **“Run workflow”** button again.
+5. The full pipeline will execute (~3 minutes).
+
+All reports will be regenerated automatically.
+
+# Notes on Reproducibility
+
+- Resource-intensive model calibration is not re-executed during CI.
+- Pretrained model artifacts are stored in `model/Q1_models/`.
+- Data processing notebooks are modular and clearly separated.
+- Outputs and figures are stored under `outputs/`.
+
+The repository is structured so that:
+- Data lives in `/data`
+- Processing logic lives in `/analysis`
+- Modelling artifacts live in `/model`
+- Final communication lives in `/report`
+
+This ensures logical grouping of related information and ease of navigation.
+
+
+# Intended Audience
+
+This repository is designed for:
+- Academic evaluation
+- Reproducible analytics demonstration
+- Public-sector analytics stakeholders
+- Environmental policy modelling teams
+
+It supports decision-ready insights for Ontario municipal environmental offices and the Ministry of the Environment.
