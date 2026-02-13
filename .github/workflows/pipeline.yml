@@ -2,10 +2,9 @@ name: Analysis Pipeline (uv + Quarto)
 
 on:
   push:
-    branches: ["main"]   # Set trigger to main branch merge/push
+    branches: ["main"]
   workflow_dispatch: {}
 
-# Required for GitHub Pages deployment (allows GITHUB_TOKEN to push to gh-pages)
 permissions:
   contents: write
 
@@ -35,29 +34,34 @@ jobs:
       - name: Install Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      # Run initial analysis script (should write outputs/summary.csv)
-      # This is just a placeholder, replace the filename with actual analysis script later.
-      - name: Run analysis (smoke test)
+      - name: Install TinyTeX for PDF rendering
         run: |
-          uv run python analysis/00_smoke_test.py
+          quarto install tinytex --update-path
 
-      - name: Render Quarto report
+      # Step 1: Run notebooks to generate figures
+      - name: Execute Q2 notebook (generate figures)
         run: |
-          quarto render report/test_report.qmd
-          mkdir -p site
-          cp report/test_report.html site/index.html
+          uv run jupyter nbconvert --to notebook --execute --inplace \
+            "model/Model Fitting to question 2.ipynb" \
+            --ExecutePreprocessor.timeout=600
 
-      # Upload HTML as artifact (immutable snapshot for this workflow run)
-      - name: Upload Executive Report (single HTML)
+      - name: Verify figures generated
+        run: |
+          ls outputs/figures/q2_*.png
+
+      # Step 2: Render Quarto reports
+      - name: Render Q2 report
+        run: |
+          quarto render "report/Research Question 2 Report.qmd"
+
+      - name: List rendered outputs
+        run: |
+          ls -la report/*.pdf
+
+      # Upload reports as artifacts
+      - name: Upload Q2 Report
         uses: actions/upload-artifact@v4
         with:
-          name: test-report-html
-          path: report/test_report.html
+          name: q2-report-pdf
+          path: report/*.pdf
           if-no-files-found: error
-
-      # Deploy rendered HTML to GitHub Pages (click-to-view online)
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site

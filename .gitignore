@@ -1,0 +1,15 @@
+# Generated outputs (reproduced by pipeline)
+outputs/figures/*.png
+outputs/summary.csv
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
