@@ -190,7 +190,7 @@ Estimated runtime: **~3 minutes**
 4. Click the green **“Run workflow”** button again.
 5. The full pipeline will execute (~3 minutes).
 
-All reports will be regenerated automatically.
+All reports will be regenerated automatically and downloaded as a.zip file to your local drive.
 
 # Notes on Reproducibility
 
