@@ -1,53 +1,101 @@
 ---
-title: "Group 3 Studies: AQI Data Analysis"
-format: pdf
-editor: visual
-output:
-  pdf_document:
-    latex_engine: xelatex
-fontsize: 9pt
+title: "Ontario Air Quality Analytics"
+subtitle: "Executive Report: Traffic, Temporal Effects & Forecasting Strategy"
+author: |
+  Group 3  
+  Air Quality Prediction & Decision Support Division
+date: \today
+format:
+  pdf:
+    latex-engine: xelatex
+    toc: false
+    number-sections: false
+fontsize: 11pt
 geometry: margin=1in
 execute:
   echo: false
   warning: false
   message: false
+include-in-header:
+  text: |
+    \usepackage{titling}
+    \pretitle{\begin{center}\LARGE\bfseries}
+    \posttitle{\par\end{center}\vskip 1.5em}
+    \preauthor{\begin{center}\large}
+    \postauthor{\par\end{center}\vskip 1em}
+    \predate{\begin{center}\large}
+    \postdate{\par\end{center}\vfill\end{center}}
 ---
 
 # 1. Context
 
-Our team supports air-quality monitoring and decision-making for provincial and municipal authorities responsible for advisories, resource allocation, and mitigation design. Prior analysis demonstrates that AQI dynamics across Ontario are systematically structured along two dimensions. At the daily level, lagged traffic and meteorological variables explain a stable portion of next-day variation. At the intraday level, pollution follows a consistent temporal pattern—morning peak (6:00–8:00 AM), midday trough, and evening rise—with higher weekday levels and strong seasonal amplification, particularly in winter and summer. Hierarchical and nonlinear models confirm that these effects remain statistically significant after accounting for station heterogeneity, indicating stable structural drivers rather than random noise. Building on this evidence, the present analysis extends from explanation to operational forecasting. We evaluate whether validated traffic, meteorological, and temporal effects can support reliable one-step-ahead AQI prediction and which modeling approach best balances predictive performance, interpretability, and deployability. Forecasting is thus framed as an operational extension of structural analysis, supporting precision, time-targeted environmental management and evidence-based policy intervention.
+We are a data science team within an air-quality prediction and decision-support company operating in a model similar to BreezoMeter. Our mandate is to convert large-scale environmental, meteorological, and traffic data into reliable forecasts and decision-ready intelligence for public-sector clients. The company’s core value proposition lies not only in predictive accuracy but in translating model outputs into clear, actionable guidance that supports public health protection and regulatory planning.
 
-# 2. Research Questions and Business Meaning
+This analysis is commissioned by the Head of Analytics, Product Analytics Lead, who is accountable for ensuring that advanced modelling outputs are operationalized into product features, advisory thresholds, and policy-relevant insights. The role requires delivering analytically rigorous, interpretable, and implementation-ready results that can directly inform client decision cycles and product strategy.
 
-## Q1 (Integrated Daily Effects)
+Primary downstream stakeholders include Ontario municipal environmental offices and the Ontario Ministry of the Environment. These agencies rely on our forecasts and analytical evaluations to issue air quality advisories, assess the effectiveness of traffic- and emissions-related interventions, and coordinate short-term mitigation responses during elevated risk periods. Accordingly, this report is structured to emphasize robustness, clarity, and direct policy applicability, ensuring that analytical findings translate into measurable environmental and public health impact.
 
-### **Research Question**
+# 2. Strategic Questions and Decisioning
 
-Across Ontario monitoring locations, how are daily AQI levels associated with daily traffic volume after controlling for meteorological factors (temperature, wind, humidity), and does this association vary by season?
+## Q1 - Daily Traffic Impact on Air Quality
 
-### **Business Meaning**
+### **Strategic Question**
 
-Understanding the magnitude and seasonal stability of the traffic–pollution relationship informs whether traffic management policies (e.g., congestion pricing, remote-work incentives, peak-hour regulation) can generate measurable next-day AQI improvements. If the association is systematic and stable, it provides an empirical foundation for forecast-driven traffic intervention strategies.
+To what extent does daily traffic volume materially influence next-day AQI across Ontario, after accounting for weather conditions, and is this relationship consistent across seasons?
 
-## Q2 (Temporal Structure and Heterogeneity)
+### **Executive Relevance**
 
-### **Research Question**
+This analysis determines whether traffic interventions can produce measurable and predictable improvements in air quality.
 
-How do AQI concentrations vary by hour of day and weekday versus weekend, and do these temporal patterns differ across seasons or stations?
+If traffic volume demonstrates a stable and economically meaningful impact on AQI, this provides an empirical basis for:
 
-### **Business Meaning**
+- Forecast-triggered traffic management (e.g., congestion controls on high-risk days)
 
-Identifying intraday and seasonal exposure windows enables time-targeted environmental management. If pollution consistently peaks during specific hours or seasons, advisories and mitigation measures can be deployed with greater precision rather than uniformly across time. Understanding station-level heterogeneity further supports geographically adaptive policy design.
+- Seasonal policy adjustments (e.g., stronger winter mitigation)
 
-## Forecasting Extension
+- Evidence-backed evaluation of transportation initiatives
 
-### **Research Question**
+In short, Q1 informs whether traffic is a controllable lever for short-term air quality improvement and whether the impact is sufficiently stable to support operational decision-making.
 
-Given the empirically validated daily and temporal structure of AQI dynamics, to what extent can these relationships support a reliable one-step-ahead forecasting framework?
+## Q2 - Intraday and Seasonal Exposure Windows
 
-### **Business Meaning**
+### **Strategic Question**
 
-If structural effects identified in Q1 and Q2 are sufficiently stable, they can be leveraged to build operational next-day forecasting systems. The policy decision then becomes whether interpretable linear models are adequate for deployment or whether additional model complexity meaningfully improves predictive performance without sacrificing stability and transparency.
+When does air quality risk concentrate during the day and week, and does this pattern vary by season or geography?
+
+### **Executive Relevance**
+
+This analysis identifies predictable exposure windows where risk is systematically elevated.
+
+If AQI peaks during specific hours (e.g., morning commute) or during particular seasons (e.g., winter amplification), environmental response can shift from broad, reactive advisories to targeted, time-specific interventions.
+
+This enables:
+
+-   Hour-level advisory timing
+
+-   Precision deployment of mitigation measures
+
+-   More efficient allocation of municipal resources
+
+-   Geographically adaptive strategies where station heterogeneity exists
+
+Q2 determines whether air quality risk is structurally predictable across time, enabling smarter timing of policy action.
+
+## Forecasting Extension - Operational Deployment
+
+### **Strategic Question**
+
+Can the observed structural relationships support a reliable next-day AQI forecasting system suitable for operational deployment?
+
+### **Executive Relevance**
+
+If the traffic and temporal effects identified in Q1 and Q2 are stable, they can be operationalized into a forecasting framework.
+
+The key leadership decision becomes:
+
+-   Whether interpretable linear models provide sufficient predictive reliability for deployment
+
+-   Or whether added model complexity materially improves accuracy without reducing transparency or stability
 
 # 3. Executive Summary
 
