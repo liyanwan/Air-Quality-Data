@@ -32,8 +32,6 @@ Primary downstream stakeholders include Ontario municipal environmental offices 
 
 ## Q1 - Traffic Management and Measurable AQI Reduction
 
-### **Strategic Question**
-
 Does daily traffic volume materially and consistently drive next-day AQI after adjusting for weather?
 
 ### **Executive Implication**
@@ -49,8 +47,6 @@ If the relationship is stable and economically meaningful, traffic becomes an ac
 Q1 determines whether traffic management can reliably improve short-term air quality — and whether it can be operationalized.
 
 ## Q2 - When Does Risk Concentrate?
-
-### **Strategic Question**
 
 At what hours, days, and seasons does pollution risk structurally peak — and is this consistent across locations?
 
@@ -71,8 +67,6 @@ Q2 defines when and where intervention delivers the highest marginal impact.
 This analysis identifies predictable exposure windows where risk is systematically elevated.
 
 ## Forecasting - Can We Operationalize This?
-
-### **Strategic Question**
 
 Are these structural effects stable enough to support reliable next-day AQI forecasting?
 
