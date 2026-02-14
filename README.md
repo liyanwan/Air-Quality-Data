@@ -182,7 +182,7 @@ This pipeline:
 Estimated runtime: **~3 minutes**
 
 
-# How to Run the Repository (Professor Instructions)
+# How to Run the Repository 
 
 1. Go to the **Actions** tab at the top of the repository.
 2. In the left-hand sidebar, click **“Analysis Pipeline (uv + Quarto)”**.
