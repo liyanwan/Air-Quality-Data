@@ -12,7 +12,7 @@ format:
     classoption: ["titlepage"]
     toc: false
     number-sections: false
-fontsize: 12pt
+fontsize: 11pt
 geometry: margin=1in
 execute:
   echo: false
