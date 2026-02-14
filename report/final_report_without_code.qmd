@@ -28,73 +28,65 @@ This analysis is commissioned by the Head of Analytics, Product Analytics Lead, 
 
 Primary downstream stakeholders include Ontario municipal environmental offices and the Ontario Ministry of the Environment. These agencies rely on our forecasts and analytical evaluations to issue air quality advisories, assess the effectiveness of traffic- and emissions-related interventions, and coordinate short-term mitigation responses during elevated risk periods. Accordingly, this report is structured to emphasize robustness, clarity, and direct policy applicability, ensuring that analytical findings translate into measurable environmental and public health impact.
 
-# 2. Strategic Questions and Decisioning
+# 2. Strategic Questions and Decison Impact
 
-## Q1 - Daily Traffic Impact on Air Quality
-
-### **Strategic Question**
-
-To what extent does daily traffic volume materially influence next-day AQI across Ontario, after accounting for weather conditions, and is this relationship consistent across seasons?
-
-### **Executive Relevance**
-
-This analysis determines whether traffic interventions can produce measurable and predictable improvements in air quality.
-
-If traffic volume demonstrates a stable and economically meaningful impact on AQI, this provides an empirical basis for:
-
-- Forecast-triggered traffic management (e.g., congestion controls on high-risk days)
-
-- Seasonal policy adjustments (e.g., stronger winter mitigation)
-
-- Evidence-backed evaluation of transportation initiatives
-
-In short, Q1 informs whether traffic is a controllable lever for short-term air quality improvement and whether the impact is sufficiently stable to support operational decision-making.
-
-## Q2 - Intraday and Seasonal Exposure Windows
+## Q1 - Traffic Management and Measurable AQI Reduction
 
 ### **Strategic Question**
 
-When does air quality risk concentrate during the day and week, and does this pattern vary by season or geography?
+Does daily traffic volume materially and consistently drive next-day AQI after adjusting for weather?
 
-### **Executive Relevance**
+### **Executive Implication**
+
+If the relationship is stable and economically meaningful, traffic becomes an actionable policy lever. This supports:
+
+-   Forecast-triggered congestion controls
+
+-   Seasonal tightening (e.g., winter mitigation focus)
+
+-   Quantifiable evaluation of transportation policy impact
+
+Q1 determines whether traffic management can reliably improve short-term air quality — and whether it can be operationalized.
+
+## Q2 - When Does Risk Concentrate?
+
+### **Strategic Question**
+
+At what hours, days, and seasons does pollution risk structurally peak — and is this consistent across locations?
+
+### **Executive Implications**
+
+If exposure windows are predictable, response should be time-specific rather than uniform. This enables:
+
+-   Targeted advisory timing
+
+-   Peak-hour mitigation deployment
+
+-   Seasonally calibrated intervention
+
+-   Geographic prioritization
+
+Q2 defines when and where intervention delivers the highest marginal impact.
 
 This analysis identifies predictable exposure windows where risk is systematically elevated.
 
-If AQI peaks during specific hours (e.g., morning commute) or during particular seasons (e.g., winter amplification), environmental response can shift from broad, reactive advisories to targeted, time-specific interventions.
-
-This enables:
-
--   Hour-level advisory timing
-
--   Precision deployment of mitigation measures
-
--   More efficient allocation of municipal resources
-
--   Geographically adaptive strategies where station heterogeneity exists
-
-Q2 determines whether air quality risk is structurally predictable across time, enabling smarter timing of policy action.
-
-## Forecasting Extension - Operational Deployment
+## Forecasting - Can We Operationalize This?
 
 ### **Strategic Question**
 
-Can the observed structural relationships support a reliable next-day AQI forecasting system suitable for operational deployment?
+Are these structural effects stable enough to support reliable next-day AQI forecasting?
 
-### **Executive Relevance**
+### **Executive Implication**
 
-If the traffic and temporal effects identified in Q1 and Q2 are stable, they can be operationalized into a forecasting framework.
+If yes, forecasting can shift from analytical insight to operational tool — powering automated advisories and pre-emptive mitigation.
 
-The key leadership decision becomes:
-
--   Whether interpretable linear models provide sufficient predictive reliability for deployment
-
--   Or whether added model complexity materially improves accuracy without reducing transparency or stability
+The leadership decision is not whether we can model AQI — but whether model accuracy, stability, and interpretability are sufficient for deployment at scale.
 
 # 3. Executive Summary
 
 ## 3.1 Structural and Predictive Evidence
 
-This report integrates next-day forecasting with hierarchical time-structure analysis. Results show that AQI across Ontario is systematically structured rather than random.
+Our model integrates next-day forecasting with hierarchical time-structure analysis. Results show that AQI across Ontario is systematically structured rather than random.
 
 Lagged traffic and meteorological variables explain a stable portion of next-day variation. Linear models achieve the lowest out-of-sample error, while nonlinear approaches provide no meaningful improvement. Under the current feature set, the dominant daily signal is approximately linear.
 
