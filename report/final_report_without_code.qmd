@@ -2,7 +2,7 @@
 title: "Ontario Air Quality Analytics"
 subtitle: "Executive Report: Traffic, Temporal Effects & Forecasting Strategy"
 author:
-  - "Group 3"
+  - "Data Science Team"
   - "Air Quality Prediction & Decision Support Division"
 date: today
 format:
