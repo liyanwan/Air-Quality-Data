@@ -1,9 +1,9 @@
 ---
 title: "Ontario Air Quality Analytics"
-subtitle: "Executive Report: Traffic, Temporal Effects & Forecasting Strategy"
-author: 
-  - "Data Analytics Team"
-  - "Air Quality Prediction & Decision Support Division"
+
+subtitle: "Executive Report on Traffic, Temporal Effects & Forecasting Strategy"
+
+author: "Data Analytics Team - Air Quality Prediction & Decision Support Division"
 date: "2026-02-13"
 format:
   pdf:
