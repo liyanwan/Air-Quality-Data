@@ -173,8 +173,6 @@ The mixed-effects model confirms these patterns remain statistically significant
 
 Weekends are associated with a 1.05-unit reduction relative to weekdays (*p* \< 0.001).
 
-![Residuals vs fitted values for the mixed-effects model.](../outputs/figures/q2_fig4_residuals.png){width="70%"}
-
 These are not marginal differences—they are systematic, highly significant, and persistent after spatial adjustment. The weekday effect directly supports the interpretation that anthropogenic activity, particularly traffic, materially elevates pollution levels.
 
 The GAM further reveals strong nonlinear hourly effects and significant hour–season interactions. In practical terms, the shape and amplitude of the daily AQI curve differ meaningfully across seasons. Winter mornings exhibit both higher levels and steeper gradients, suggesting reduced dispersion and amplified emission impact.
