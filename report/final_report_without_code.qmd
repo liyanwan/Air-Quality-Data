@@ -1,10 +1,10 @@
 ---
 title: "Ontario Air Quality Analytics"
 subtitle: "Executive Report: Traffic, Temporal Effects & Forecasting Strategy"
-author: |
-  Group 3  
-  Air Quality Prediction & Decision Support Division
-date: \today
+author:
+  - "Group 3"
+  - "Air Quality Prediction & Decision Support Division"
+date: today
 format:
   pdf:
     latex-engine: xelatex
@@ -16,15 +16,6 @@ execute:
   echo: false
   warning: false
   message: false
-include-in-header:
-  text: |
-    \usepackage{titling}
-    \pretitle{\begin{center}\LARGE\bfseries}
-    \posttitle{\par\end{center}\vskip 1.5em}
-    \preauthor{\begin{center}\large}
-    \postauthor{\par\end{center}\vskip 1em}
-    \predate{\begin{center}\large}
-    \postdate{\par\end{center}\vfill\end{center}}
 ---
 
 # 1. Context
