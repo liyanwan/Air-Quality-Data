@@ -31,6 +31,7 @@ Air-Quality-Data/
 │   │   ├── station12008_test_daily.csv
 │   │   └── test_all.csv
 │   │
+│   ├── air_quality_csv/
 │   ├── AirQuality_ON_2022_2024.csv
 │   ├── Hourly_AQI_EPA.xlsb
 │   ├── merged_10km_daily_updated.csv
@@ -87,6 +88,12 @@ The analysis integrates the following datasets:
 ### 5. Spatially Merged Dataset
 - File: `merged_10km_daily_updated.csv`
 - Left-joined dataset linking AQI stations to traffic and weather within a 10 km radius
+
+### 6. Raw Station-Level Air Quality Data
+Located in `data/air_quality_csv/`
+- Each file corresponds to a specific monitoring station with various pollutants
+- Data are recorded hourly and used to compute daily pollutant measures
+- The source inputs for constructing the Ontario Air Quality Data within a specific date range
 
 ### Q1 Modeling Subset
 Located in `data/Q1_data/`:
