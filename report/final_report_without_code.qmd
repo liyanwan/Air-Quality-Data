@@ -1,16 +1,16 @@
 ---
 title: "Ontario Air Quality Analytics"
 subtitle: "Executive Report: Traffic, Temporal Effects & Forecasting Strategy"
-author:
-  - "Data Science Team"
-  - "Air Quality Prediction & Decision Support Division"
-date: today
+author: "Data Analytics Team  \\\\ Air Quality Prediction & Decision Support Division"
+date: "2026-02-14"
 format:
   pdf:
     latex-engine: xelatex
+    documentclass: article
+    classoption: ["titlepage"]
     toc: false
     number-sections: false
-fontsize: 11pt
+fontsize: 12pt
 geometry: margin=1in
 execute:
   echo: false
