@@ -110,23 +110,13 @@ Linear models (OLS or ElasticNet) provide competitive accuracy, interpretability
 
 Further predictive gains depend primarily on expanding environmental feature coverage rather than increasing algorithmic complexity.
 
-# 4. Statistical Framework
+# 4. Statistical Framework - Model Fitting
 
-## 4.1 Data Construction and Integration
-
-The analysis focuses on Ontario monitoring stations to ensure relevance to our operational scope. We restrict the sample to April 26, 2022 – September 26, 2024, the period with consistent traffic coverage. Including dates outside this window would substantially increase missing data and weaken the reliability of the results.
-
-Air quality readings are summarized at the daily level to align with traffic and weather data and to reduce short-term volatility that is less relevant for policy planning. Key meteorological variables—such as temperature, precipitation, and wind conditions—are included because weather plays a central role in how pollutants disperse. Traffic and weather information are linked to each air quality station using nearby monitoring sources within a 10 km radius, balancing local relevance with data availability.
-
-To maintain data quality, variables with severe missingness were excluded, and remaining gaps were handled in a way that preserves the overall sample size. Persistent differences across monitoring stations are accounted for in the modeling process. In forecasting exercises, only past information is used to predict future AQI values, ensuring realistic out-of-sample evaluation.
-
-## 4.2 Model Fitting
-
-### 4.2.1 Models for Q1: Integrated Daily Effects
+### Models for Q1: Integrated Daily Effects
 
 For our first research question, we implemented a one-step-ahead forecasting framework using lagged daily predictors. A time-based split was used to prevent look-ahead bias, and hyperparameters were selected using rolling cross-validation (TimeSeriesSplit). Station ID was encoded categorically to capture persistent cross-station baseline differences analogous to fixed effects. We compared linear models (OLS, ElasticNet, Neural Networks) against nonlinear learners (XGBoost) to evaluate whether additional flexibility improves out-of-sample performance.
 
-### 4.2.2 Models for Q2: Temporal Structure and Heterogeneity
+### Models for Q2: Temporal Structure and Heterogeneity
 
 For our second research question, we adopted a hierarchical modelling strategy to isolate structural time effects. A mixed-effects model incorporated station as a random intercept to quantify between-station heterogeneity while estimating fixed effects for season and weekday. To capture nonlinear diurnal structure, a Generalized Additive Model (GAM) was fitted with smooth hourly terms and hour–season interactions. Finally, XGBoost was used to assess short-term predictive capability under nonlinear feature interactions. This multi-model approach allows us to distinguish linear structural relationships from nonlinear seasonal modulation while evaluating predictive robustness.
 
