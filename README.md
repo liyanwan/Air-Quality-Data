@@ -31,6 +31,11 @@ Air-Quality-Data/
 │   │   ├── station12008_test_daily.csv
 │   │   └── test_all.csv
 │   │
+│   ├── wildfire/                        ← Case Study 2 (not committed, see below)
+│   │   ├── raw/                         ← downloaded ZIPs + extracted CSVs
+│   │   ├── hotspots_2022_2024_canada.csv.gz   ← combined raw
+│   │   └── hotspots_clean.csv.gz              ← analysis-ready
+│   │
 │   ├── air_quality_csv/
 │   ├── AirQuality_ON_2022_2024.csv
 │   ├── Hourly_AQI_EPA.xlsb
@@ -66,7 +71,15 @@ Air-Quality-Data/
 
 # Data Sources
 
-The analysis integrates the following datasets:
+The analysis integrates the following datasets.
+
+> **Note on wildfire data:** The `data/wildfire/` folder is **not committed to GitHub**
+> because the files are 300–400 MB. To reproduce them locally, run:
+> ```bash
+> python scripts/download_cwfis_hotspots.py
+> python scripts/clean_cwfis_hotspots.py
+> ```
+> See `scripts/README.md` for full details.
 
 ### 1. Ontario Air Quality Data (2022–2024)
 - Source: Ontario Ministry of the Environment
@@ -94,6 +107,13 @@ Located in `data/air_quality_csv/`
 - Each file corresponds to a specific monitoring station with various pollutants
 - Data are recorded hourly and used to compute daily pollutant measures
 - The source inputs for constructing the Ontario Air Quality Data within a specific date range
+
+### 6. Canadian Wildfire Hotspot Data (Case Study 2)
+- Source: [CWFIS Datamart](https://cwfis.cfs.nrcan.gc.ca/downloads/hotspots/archive/)
+- Files: `data/wildfire/hotspots_clean.csv.gz` (analysis-ready, **not committed**)
+- CWFIS Fire M3 Daily Hotspots for 2022–2024 wildfire seasons across Canada
+- 4.94M hotspot observations with location, fire intensity (HFI, FRP, TFC), and fire weather indices
+- Reproduce locally with `scripts/download_cwfis_hotspots.py` + `scripts/clean_cwfis_hotspots.py`
 
 ### Q1 Modeling Subset
 Located in `data/Q1_data/`:

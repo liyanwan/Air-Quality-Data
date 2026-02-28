@@ -2,6 +2,11 @@
 outputs/figures/*.png
 outputs/summary.csv
 
+# Wildfire data — too large for GitHub
+# Reproduce via: python scripts/download_cwfis_hotspots.py && python scripts/clean_cwfis_hotspots.py
+data/wildfire/raw/
+data/wildfire/*.csv.gz
+
 # Python
 .venv/
 __pycache__/
@@ -13,3 +18,8 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+nul
+
+# Local-only folders (not part of the repo)
+.claude/
+support/
