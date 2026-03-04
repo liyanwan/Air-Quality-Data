@@ -3,9 +3,12 @@ outputs/figures/*.png
 outputs/summary.csv
 
 # Wildfire data — too large for GitHub
-# Reproduce via: python scripts/download_cwfis_hotspots.py && python scripts/clean_cwfis_hotspots.py
+# Reproduce via: python scripts/download_cwfis_hotspots.py
+#                python scripts/clean_cwfis_hotspots.py
+#                python scripts/build_wsei_features.py
 data/wildfire/raw/
-data/wildfire/*.csv.gz
+data/wildfire/hotspots_2022_2024_canada.csv.gz
+data/wildfire/hotspots_clean.csv.gz
 
 # Python
 .venv/
