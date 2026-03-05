@@ -8,11 +8,12 @@ Notebooks for modelling and analysis live under `analysis/` and `model/`.
 ## Case Study 2 – Wildfire Data Pipeline
 
 The wildfire data is **not committed to GitHub** (files are 300–400 MB).
-Run these two scripts in order to reproduce it locally:
+Run these three scripts in order to reproduce it locally:
 
 ```bash
 python scripts/download_cwfis_hotspots.py
 python scripts/clean_cwfis_hotspots.py
+python scripts/build_wsei_features.py
 ```
 
 ### download_cwfis_hotspots.py
@@ -79,6 +80,65 @@ Key columns for downstream analysis:
 | `tfc` | Total Fuel Consumption — alternative intensity proxy |
 | `ws`, `wd` | Wind speed (km/h) and direction (degrees) at hotspot |
 | `ffmc`–`fwi` | Canadian Forest Fire Weather Index system components |
+
+---
+
+### build_wsei_features.py
+
+Builds the **Wildfire Smoke Exposure Index (WSEI)** features for Case Study 2 and
+produces the final modeling dataset. Requires `hotspots_clean.csv.gz` (from
+`clean_cwfis_hotspots.py`) and the original `merged_10km_daily_updated.csv`.
+
+The script does three things in sequence:
+
+**1. Wind direction join**
+
+Extracts `Dir of Max Gust (10s deg)` from `weather_ON_2022_2024.csv` and matches
+it to each AQI station using the same 10 km spatial radius used when building the
+merged dataset. Wind direction is aggregated with a **circular mean** (sin/cos
+averaging) to correctly handle the 0°/360° wraparound (e.g. 350° + 10° = 0°, not 180°).
+
+ECCC encoding note: values are in tens of degrees (1 = 10°, 36 = 360° = North,
+0 = calm/missing). Multiplied by 10 to produce standard degrees.
+
+**2. WSEI computation**
+
+For every (AQI station, date) pair at lags k = 0, 1, 2, 3 days:
+
+```
+WSEI(s, t, k) = Σ_f  log(1+I_f) × K(d(s,f)) × W(Δθ_{s,f}, v_{s,t-k})
+```
+
+- **Intensity proxy** `I`: primary = `hfi`; alternatives = `frp`, `tfc` (sensitivity checks)
+- **Distance kernel** `K(d) = 1 / (1 + (d / 500 km)²)` — Cauchy/inverse-square; half-weight at 500 km; hard cutoff at 2,000 km
+- **Wind alignment** `W = v × max(0, cos(Δθ))` — upweights hotspots that are upwind of the station, scaled by wind speed
+
+Hotspots are pre-filtered to a bounding box (lat 35–62, lon −107 to −62) covering
+Ontario plus a ~1,000–1,500 km buffer in all directions.
+
+**Output columns (per station × date):**
+
+| Column | Description |
+|--------|-------------|
+| `wind_dir_deg` | Circular-mean wind direction (°, met. FROM convention) |
+| `wind_spd_kmh` | Mean wind gust speed (km/h) |
+| `wsei_hfi_k0` – `k3` | WSEI (hfi) at lag 0–3 days |
+| `wsei_frp_k0` – `k3` | WSEI (frp) at lag 0–3 days — sensitivity check |
+| `wsei_tfc_k0` – `k3` | WSEI (tfc) at lag 0–3 days — sensitivity check |
+| `wsei_hfi_max3d` | max(k0..k3) — peak exposure in 3-day window |
+| `wsei_hfi_sum3d` | sum(k0..k3) — cumulative 3-day exposure |
+
+**3. Outputs**
+
+| File | Description |
+|------|-------------|
+| `data/wildfire/wsei_features.csv` | Intermediate WSEI-only cache (fast reload) |
+| `data/wildfire/merged_with_wsei.csv` | Full modeling dataset: merged + wind + WSEI |
+
+Runtime: ~5–15 minutes (dominated by 2023 hotspot density, ~8,700 hotspots/day).
+
+See `data/data_dictionary.md` for the full data dictionary and design-decision rationale
+(kernel choice, wind alignment, distance cutoff).
 
 ---
 

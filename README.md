@@ -34,7 +34,9 @@ Air-Quality-Data/
 │   ├── wildfire/                        ← Case Study 2 (not committed, see below)
 │   │   ├── raw/                         ← downloaded ZIPs + extracted CSVs
 │   │   ├── hotspots_2022_2024_canada.csv.gz   ← combined raw
-│   │   └── hotspots_clean.csv.gz              ← analysis-ready
+│   │   ├── hotspots_clean.csv.gz              ← analysis-ready hotspots
+│   │   ├── wsei_features.csv               ← WSEI feature cache (station × date)
+│   │   └── merged_with_wsei.csv            ← full Case 2 modeling dataset
 │   │
 │   ├── air_quality_csv/
 │   ├── AirQuality_ON_2022_2024.csv
@@ -78,8 +80,9 @@ The analysis integrates the following datasets.
 > ```bash
 > python scripts/download_cwfis_hotspots.py
 > python scripts/clean_cwfis_hotspots.py
+> python scripts/build_wsei_features.py
 > ```
-> See `scripts/README.md` for full details.
+> See `scripts/README.md` and `data/data_dictionary.md` for full details.
 
 ### 1. Ontario Air Quality Data (2022–2024)
 - Source: Ontario Ministry of the Environment
@@ -110,10 +113,18 @@ Located in `data/air_quality_csv/`
 
 ### 6. Canadian Wildfire Hotspot Data (Case Study 2)
 - Source: [CWFIS Datamart](https://cwfis.cfs.nrcan.gc.ca/downloads/hotspots/archive/)
-- Files: `data/wildfire/hotspots_clean.csv.gz` (analysis-ready, **not committed**)
+- File: `data/wildfire/hotspots_clean.csv.gz` (analysis-ready, **not committed**)
 - CWFIS Fire M3 Daily Hotspots for 2022–2024 wildfire seasons across Canada
 - 4.94M hotspot observations with location, fire intensity (HFI, FRP, TFC), and fire weather indices
 - Reproduce locally with `scripts/download_cwfis_hotspots.py` + `scripts/clean_cwfis_hotspots.py`
+
+### 7. WSEI Features and Case Study 2 Modeling Dataset
+- Files: `data/wildfire/wsei_features.csv`, `data/wildfire/merged_with_wsei.csv` (**not committed**)
+- Wildfire Smoke Exposure Index (WSEI) features computed per AQI station × day
+- Incorporates wind direction, distance decay kernel, and lags k = 0–3 days
+- Merged with `merged_10km_daily_updated.csv` to produce the full Case Study 2 input
+- Reproduce locally with `scripts/build_wsei_features.py`
+- See `data/data_dictionary.md` for data dictionary and WSEI design rationale
 
 ### Q1 Modeling Subset
 Located in `data/Q1_data/`:
