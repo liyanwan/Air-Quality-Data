@@ -1,0 +1,442 @@
+---
+title: "Bayesian Analysis for WSEI"
+format: pdf
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(brms)
+library(bayesplot)
+library(posterior)
+library(tidybayes)
+library(mgcv)
+library(janitor)
+```
+
+### 1. Data
+
+```{r}
+data_path <- "/Users/cy027/Desktop/merged_with_wsei.csv"
+df_raw <- readr::read_csv(data_path, show_col_types = FALSE)
+
+# Standardize names a bit (avoid spaces in formulas)
+df <- df_raw %>%
+  rename(
+    station_id = `Station ID`,
+    date = Date,
+    lat = Latitude,
+    lon = Longitude,
+    aqi = AQI
+  ) %>%
+  mutate(
+    date = as.Date(date),
+    dow  = wday(date, label = TRUE),
+    month = month(date),
+    doy = yday(date),
+    year = year(date)
+  )
+
+# glimpse(df)
+# summary(df$aqi)
+
+```
+
+*Interpretation:* this sets up the panel structure needed for hierarchical modelling (i.e. many days per station) and ensures the model can distinguish from day-to-day variation vs. station-to-station baseline differences.
+
+#### 1.1 Outcome choice
+
+For **RQ1**, we model next-day AQI. That aligns with your “warning” goal and avoids same-day simultaneity.
+
+```{r}
+df <- df %>%
+  arrange(station_id, date) %>%
+  group_by(station_id) %>%
+  mutate(aqi_next = lead(aqi, 1)) %>%
+  ungroup() %>%
+  filter(!is.na(aqi_next))
+```
+
+*Interpretation:* this avoids same-day simultaneity (smoke today vs AQI today can be contemporaneous).
+
+## 2. RQ1 - Bayesian hierarchical regression
+
+Model specification
+
+-   Response: `aqi_next`
+
+-   Fixed effects: wildfire lags (k0–k3), meteorology, traffic, weekday
+
+-   Seasonality: smooth function of day-of-year (cyclic)
+
+-   Random intercept: station-level baseline differences
+
+You can choose one wildfire intensity family as “primary” (recommended: **hfi**) and treat frp/tfc as sensitivity checks.
+
+```{r}
+# Choose wildfire variables (primary)
+wsei_vars <- c("wsei_hfi_k0","wsei_hfi_k1","wsei_hfi_k2","wsei_hfi_k3")
+
+# Basic covariates (edit based on what exists in your file)
+covars <- c("MeanTemp","TotalPrecip","MaxTemp","MinTemp","TempRange","TotalTraffic","wind_dir_deg")
+
+# Keep only columns we need and drop missing
+df_m <- df %>%
+  select(station_id, date, aqi_next, dow, doy, month, year, all_of(wsei_vars), all_of(covars)) %>%
+  drop_na()
+
+# Standardize continuous predictors for stable priors
+scale_cols <- c(wsei_vars, covars)
+df_m <- df_m %>%
+  mutate(across(all_of(scale_cols), ~ as.numeric(scale(.x)), .names = "{.col}_z"))
+```
+
+cyclic seasonality under brms formula
+
+```{r}
+f_rq1 <- bf(
+  aqi_next ~
+    wsei_hfi_k0_z + wsei_hfi_k1_z + wsei_hfi_k2_z + wsei_hfi_k3_z +
+    MeanTemp_z + TotalPrecip_z + MaxTemp_z + MinTemp_z + TempRange_z +
+    TotalTraffic_z + wind_dir_deg_z +
+    dow +
+    s(doy, bs = "cc") +
+    (1 | station_id)
+)
+
+# Priors (work well when predictors are standardized)
+priors <- c(
+  prior(normal(0, 1), class = "b"),
+  prior(normal(0, 3), class = "Intercept"),
+  prior(exponential(1), class = "sd"),      # station random intercept sd
+  prior(exponential(1), class = "sigma")    # residual sd
+)
+```
+
+Fit with MCMC
+
+```{r}
+fit_rq1 <- brm(
+  formula = f_rq1,
+  data = df_m,
+  family = gaussian(),
+  prior = priors,
+  chains = 4, cores = 4, iter = 2000, warmup = 1000,
+  seed = 946
+)
+
+fit_rq1
+```
+
+**Model**
+
+ou fit a **Gaussian hierarchical regression** for next-day AQI with:
+
+-   Wildfire exposure lags: `wsei_hfi_k0` … `wsei_hfi_k3`
+
+-   Weather/traffic controls
+
+-   Weekday factor
+
+-   Cyclic seasonality spline `s(doy, bs="cc")`
+
+-   Station random intercept `(1 | station_id)`
+
+Data size: 9885 observations across 19 stations
+
+**Key result: wildfire lags (the main story for RQ1)**
+
+From the regression coefficients table:
+
+-   **k0 (same-day exposure): +1.20 AQI** with 95% CrI **\[0.74, 1.64\]**\
+
+    → strong positive association.
+
+-   **k1: −0.67 AQI** with CrI **\[−1.27, −0.04\]**\
+
+    → small negative association (barely below zero)
+
+-   **k2: +0.30 AQI** with CrI **\[−0.36, 1.00\]**\
+
+    → uncertain (crosses zero)
+
+-   **k3: +4.12 AQI** with CrI **\[3.58, 4.65\]**\
+
+    → *very strong* and highly certain positive association.\
+
+    **How to explain it simply:** After controlling for weather, seasonality, weekday, traffic, and station differences, the model finds wildfire exposure is associated with higher next-day AQI, and the strongest association appears around **3 days later**.
+
+**Controls: what’s plausible vs what to be careful about**
+
+-   **TotalPrecip: −1.77** (CrI \[−2.08, −1.47\]) → precipitation lowers AQI (physically plausible).
+
+-   **TempRange: +1.94** (CrI \[1.32, 2.57\]) → larger temp swings associated with higher AQI (plausible via boundary-layer/dispersion dynamics).
+
+-   **TotalTraffic: −1.27** (CrI \[−1.97, −0.58\]) → statistically strong but **not a causal claim**; could reflect confounding/measurement mismatch.
+
+-   **wind_dir_deg** shows a strong negative coefficient, but wind direction is circular; using degrees linearly can be misleading (good “future refinement” item).
+
+    **Hierarchical part (station effects)**
+
+<!-- -->
+
+-   **sd(Intercept) ≈ 20.55** (CrI \[15.71, 26.21\]) → stations have very different baseline AQI levels; hierarchical structure is warranted.
+
+-   **sigma ≈ 14.56** → remaining unexplained day-to-day variation in AQI_next.
+
+### 3. Assumption Check
+
+#### 3.1 Convergence
+
+```{r}
+summary(fit_rq1)$fixed %>% as.data.frame()
+
+# R-hat / ESS overview
+posterior::summarise_draws(as_draws_df(fit_rq1)) %>%
+  select(variable, rhat, ess_bulk, ess_tail) %>%
+  filter(str_detect(variable, "^b_")) %>%
+  arrange(desc(rhat)) %>%
+  head(15)
+
+# Trace the plot
+mcmc_trace(as_draws_array(fit_rq1), pars = c(
+  "b_wsei_hfi_k0_z","b_wsei_hfi_k1_z","b_wsei_hfi_k2_z","b_wsei_hfi_k3_z"
+))
+```
+
+R-hat and ESS; they are essentially \~1.00 with large ESS for key coefficients.
+Trace plot for wildfire coefficients looks stable (chains mix well). Analysis**Interpretation:** the MCMC sampling is reliable enough to trust the posterior summaries.
+
+#### 3.2 Posterior Predictive Check
+
+```{r}
+pp_check(fit_rq1, ndraws = 200)
+pp_check(fit_rq1, type = "dens_overlay", ndraws = 100)
+```
+
+The overlay plots show the model captures the bulk distribution, but tails aren’t perfect (you can see mismatch in the far right tail in the overlay).
+
+**Interpretation:** Gaussian errors are “okay for mean behavior,” but if extreme AQI accuracy matters, consider Student-t likelihood or tail modeling later.
+
+#### 3.3 Nonlinearity Check
+
+```{r}
+res <- residuals(fit_rq1)
+fit <- fitted(fit_rq1)[, "Estimate"]
+
+diag_df <- df_m %>%
+  mutate(resid = res[, "Estimate"], fitted = fit)
+
+ggplot(diag_df, aes(fitted, resid)) +
+  geom_point(alpha = 0.2) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(title = "Residuals vs Fitted (check nonlinearity / heteroskedasticity)",
+       x = "Fitted AQI_next", y = "Residual")
+```
+
+Residuals vs fitted plot shows variance widening at higher fitted AQI (fanning).
+
+**Interpretation:** errors are larger on bad-air days; uncertainty is not constant.
+
+Our model is directionally right, but uncertainty grows in high-AQI regimes—consistent with CS1’s ‘extreme days are harder’ limitation.
+
+#### 3.4 Autocorrelation
+
+```{r}
+daily_res <- diag_df %>%
+  group_by(date) %>%
+  summarise(mean_resid = mean(resid), .groups = "drop") %>%
+  arrange(date)
+
+acf(daily_res$mean_resid, main = "ACF of daily mean residuals")
+```
+
+The ACF of daily mean residuals shows residual structure at short lags. **Interpretation:** there’s still time dependence not fully captured. If forecasting is the priority, adding lagged AQI or AR structure could improve predictive performance.
+
+### 4. Wildfire Lag Effects
+
+#### 4.1 Posterior intervals for lag coefficients
+
+```{r}
+coef_df <- as_draws_df(fit_rq1) %>%
+  select(starts_with("b_wsei_hfi_k")) %>%
+  pivot_longer(everything(), names_to = "term", values_to = "draw") %>%
+  mutate(lag = str_extract(term, "k[0-3]"))
+
+sum_df <- coef_df %>%
+  group_by(lag) %>%
+  summarise(
+    mean = mean(draw),
+    lo = quantile(draw, 0.025),
+    hi = quantile(draw, 0.975),
+    p_pos = mean(draw > 0),
+    .groups = "drop"
+  )
+
+ggplot(sum_df, aes(x = lag, y = mean, ymin = lo, ymax = hi)) +
+  geom_pointrange() +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(title = "Wildfire (HFI) lag effects on next-day AQI (standardized)",
+       y = "Posterior mean (95% CrI)", x = "Lag")
+```
+
+This plot is the “money plot” for RQ1 — it visualizes the lag coefficients with 95% credible intervals. It confirms:
+
+-   strong positive at k0
+
+-   uncertain at k2
+
+-   dominant positive at k3
+
+#### 4.2 Cumulative short-lag effect (0–3 days)
+
+```{r}
+draws <- as_draws_df(fit_rq1)
+cum <- with(draws,
+            b_wsei_hfi_k0_z + b_wsei_hfi_k1_z + b_wsei_hfi_k2_z + b_wsei_hfi_k3_z)
+
+tibble(cum = cum) %>%
+  summarise(
+    mean = mean(cum),
+    lo = quantile(cum, 0.025),
+    hi = quantile(cum, 0.975),
+    p_pos = mean(cum > 0)
+  )
+```
+
+You computed the sum of k0–k3 posterior draws **mean 4.95**, CrI **\[4.63, 5.27\]**, and **p_pos = 1**
+
+**Interpretation:** across the 0–3 day window, the total wildfire association with next-day AQI is almost certainly positive and large. This is very clean to communicate.
+
+### 5. Operational Wildfire Signal
+
+We tried to forecast the probability of high-AQI next day.
+
+According to Air Quality Ontario, **Special Air Quality Statement (SAQS)** will be issured when the AQHI is forecast to reach or exceed **7 (High Risk)**.
+
+```{r}
+# High AQI next day = 1 if next-day AQI is in the top 10% of days in the dataset
+q90 <- quantile(df_m$aqi_next, probs = 0.90, na.rm = TRUE)
+q95 <- quantile(df_m$aqi_next, probs = 0.95, na.rm = TRUE)  # optional sensitivity
+
+df_m <- df_m %>%
+  mutate(
+    high_next_90 = as.integer(aqi_next >= q90),
+    high_next_95 = as.integer(aqi_next >= q95)
+  )
+
+```
+
+Fit a Bayesian hierarchical logistic model
+
+```{r}
+f_rq3_90 <- bf(
+  high_next_90 ~
+    wsei_hfi_k0_z + wsei_hfi_k1_z + wsei_hfi_k2_z + wsei_hfi_k3_z +
+    MeanTemp_z + TotalPrecip_z + MaxTemp_z + MinTemp_z + TempRange_z +
+    TotalTraffic_z + wind_dir_deg_z +
+    dow +
+    s(doy, bs = "cc") +
+    (1 | station_id)
+)
+
+fit_rq3_90 <- brm(
+  formula = f_rq3_90,
+  data = df_m,
+  family = bernoulli(link = "logit"),
+  prior = c(
+    prior(normal(0, 1), class = "b"),
+    prior(normal(0, 2), class = "Intercept"),
+    prior(exponential(1), class = "sd")
+  ),
+  chains = 4, cores = 4, iter = 2000, warmup = 1000,
+  control = list(adapt_delta = 0.95),   # helps avoid divergences
+  seed = 946
+)
+
+fit_rq3_90
+```
+
+Logistic hierarchical model - fit Bernoulli likelihood with logit link
+
+-   same covariates + station random intercept + seasonality spline
+
+These are **log-odds** effects (per 1 SD increase), not AQI units.
+
+-   **k3: 0.45** CrI \[0.32, 0.59\] → strong positive predictor of extreme-day risk Analysis\
+
+    Odds ratio ≈ exp(0.45)=1.57 → \~57% higher odds per +1 SD.
+
+-   **k1: 0.17** CrI \[0.05, 0.29\] → smaller positive effect
+
+-   **k2: −0.17** CrI \[−0.31, −0.03\] → small negative (possible lag tradeoff / multicollinearity)
+
+-   **k0 crosses 0** (not strong evidence)
+
+    **How to explain to stakeholders:** The model’s wildfire exposure features, especially the 3-day lag, meaningfully increase the probability of a high-AQI day tomorrow.
+
+#### 5.1 Risk score and calibration
+
+Compute posterior mean risk and do a simple calibration curve by deciles.
+
+```{r}
+# posterior expected probability
+p_hat <- fitted(fit_rq3_90, scale = "response")[, "Estimate"]
+df_risk <- df_m %>% mutate(p_risk = p_hat)
+
+cal <- df_risk %>%
+  mutate(bin = ntile(p_risk, 10)) %>%
+  group_by(bin) %>%
+  summarise(
+    mean_pred = mean(p_risk),
+    obs_rate = mean(high_next_90),
+    n = n(),
+    .groups = "drop"
+  )
+
+ggplot(cal, aes(mean_pred, obs_rate, size = n)) +
+  geom_point(alpha = 0.85) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  labs(
+    title = "Calibration: predicted risk vs observed frequency (top-decile AQI event)",
+    x = "Mean predicted P(high AQI next day)",
+    y = "Observed event rate"
+  )
+```
+
+You bin predictions into deciles and compare: mean predicted probability vs observed event rate
+
+The points lie fairly close to the diagonal in your plot, which supports that the risk score is not wildly miscalibrated.\
+
+**How to present:** When the model says 20% risk, historically about \~20% of those days are truly high-AQI.
+
+#### 5.2 “Wildfire-driven risk” diagnostic
+
+Operationally useful check: compare risk with and without wildfire inputs.
+
+```{r}
+# Create two prediction datasets: with true WSEI vs WSEI set to 0
+new_with <- df_m
+new_wo   <- df_m %>% mutate(across(contains("wsei_hfi_k"), ~ 0))
+
+p_with <- fitted(fit_rq3_90, newdata = new_with, scale = "response")[, "Estimate"]
+p_wo   <- fitted(fit_rq3_90, newdata = new_wo, scale = "response")[, "Estimate"]
+
+delta <- tibble(delta_risk = p_with - p_wo)
+
+ggplot(delta, aes(delta_risk)) +
+  geom_histogram(bins = 50) +
+  coord_cartesian(xlim = c(-0.12, 0.12), ylim = c(0, 8000)) +
+  labs(
+    title = "Marginal risk uplift from wildfire features (posterior mean)",
+    x = "P(high AQI | WSEI) - P(high AQI | WSEI=0)",
+    y = "Count"
+  )
+```
+
+Most mass is near 0, meaning **wildfire features don’t change risk much on most days**, which is expected (most days aren’t smoke-impacted).\
+
+The important part is the **right tail**: when wildfire exposure is high, `delta_risk` should become meaningfully positive — that’s your “smoke episode” operational signal.
+
+Wildfire features don’t trigger false alarms on normal days, but they materially increase risk on smoke-affected days.
