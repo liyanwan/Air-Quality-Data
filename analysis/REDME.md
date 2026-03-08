@@ -10,6 +10,8 @@ Lightweight validation script used for CI.
 Ensures the environment, dependencies, and key pipelines execute successfully.  
 Supports reproducibility via automated checks (uv + Quarto pipeline).
 
+### CS2RQ2.ipynb
+This part includes the analysis for RQ 2 in Case 2， which is the forecasting model with wildfire features. 
 
 ### AQProcess.ipynb
 Air quality data preprocessing:

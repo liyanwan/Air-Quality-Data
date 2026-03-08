@@ -4,6 +4,17 @@ This repository contains modelling and analytical work addressing two core resea
 
 ### Folder Details
 
+**CS2RQ2_models/**
+Contains pretrained and tuned forecasting models:
+- 'lstm_baseline.pt' – LSTM baseline model without wildfire features
+- 'lstm_wildfire.pt' – LSTM model with wildfire features
+- 'lstm_metadata.json' – Metadata on LSTM model architectures and training details
+- 'model_registry.json' - Registry of all models with performance metrics and hyperparameters
+- "nn_baseline.joblib" - Neural network baseline model without wildfire features
+- "nn_wildfire.joblib" - Neural network model with wildfire features
+- "ols_baseline.joblib" - OLS baseline model without wildfire features
+- "ols_wildfire.joblib" - OLS model with wildfire features
+
 **Q1 Models/**  
 Contains pretrained and tuned forecasting models:
 - `ols_pipe.joblib` – Linear baseline model (production candidate)
