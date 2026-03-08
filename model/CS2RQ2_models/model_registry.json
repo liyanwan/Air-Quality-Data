@@ -1,0 +1,15 @@
+{
+  "ols": {
+    "baseline_file": "ols_baseline.pkl",
+    "wildfire_file": "ols_wildfire.pkl"
+  },
+  "nn": {
+    "baseline_file": "nn_baseline.joblib",
+    "wildfire_file": "nn_wildfire.joblib"
+  },
+  "lstm": {
+    "baseline_file": "lstm_baseline.pt",
+    "wildfire_file": "lstm_wildfire.pt",
+    "metadata_file": "lstm_metadata.json"
+  }
+}
