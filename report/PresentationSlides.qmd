@@ -1,0 +1,298 @@
+---
+title: "Wildfire Effects on AQI: What We Learned and How to Use It"
+author: "Catherine Yao, Binghong Chen, Xiwen Sun, Zitong Shu, Liyan Wang"
+date: "2026-03-08"
+format:
+  pptx:
+    reference-doc: "/Users/liyanwang/Desktop/2026winterProject/stat946/CS2/template.pptx"
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+## Case Study 1 Recap
+
+-   Analyzed traffic, meteorology, and temporal patterns.
+-   Key finding: AQI variation largely explained by traffic and weather.
+-   Linear models performed best for forecasting.
+
+## Case Study 1 Limitations
+
+-   The Baseline Gap: Case 1 models performed well on average but failed to capture episodic "extreme AQI" spikes.
+
+-   The Risk: The days where our baselines fail are the exact days our users rely on us most for health advisories.
+
+-   The Hypothesis: These aligned error spikes are driven by unobserved exogenous factors—specifically, wildfire smoke transport—rather than a lack of model complexity.
+
+## Business Question
+
+The key business question is: How can we make next-day AQI forecasts more reliable during high-risk pollution events, particularly during wildfire smoke episodes?
+
+More specifically:
+
+Can wildfire activity explain extreme AQI spikes that current models fail to capture?
+
+Can wildfire signals be integrated into the forecasting pipeline to improve advisory reliability?
+
+## Data
+
+Data Source: Canadian Wildland Fire Information System (CWFIS) Fire M3 Daily Hotspots archive for 2022–2024.
+
+-   Filtered strictly to Ontario borders and stripped out records with missing coordinates or timestamps to guarantee accurate downstream spatial joins.
+-   Identified and removed physically impossible sensor errors, such as surface temperatures recorded above 100°C. Deliberately retained records where the Head Fire Intensity (HFI) was exactly 0.
+
+## Model Assumptions
+
+We fit a Bayesian hierarchical regression model with a Gaussian likelihood to estimate the effect of wildfire exposure on next-day AQI.
+
+### Predictors:
+
+-   Wildfire exposure lags (0–3 days)
+-   Meteorology (temperature, precipitation, wind)
+-   Traffic intensity
+-   Weekday effects (day-of-week indicators)
+
+## Model Assumptions
+
+::::: columns
+::: {.column width="40%"}
+### Hierarchical structure
+
+-   Station-level random intercepts\
+-   Cyclic seasonal spline for day-of-year\
+:::
+
+::: {.column width="60%"}
+![](images/GaussianCoeff.png){width="100%"}
+:::
+:::::
+
+## Bayesian Estimation
+
+### Fitting
+
+-   Posterior inference via MCMC (NUTS sampler)
+-   4 chains × 2,000 iterations (per chain)
+
+### Posterior evidence
+
+-   The posterior probability that the cumulative 0–3 day wildfire effect is positive is \> 99.9%
+
+### MCMC diagnostics
+
+-   R-hat ≈ 1.00 across parameters (good mixing / convergence)
+-   High effective sample sizes (ESS), suggesting estimates are stable and not driven by sampling noise
+
+::::: columns
+::: {.column width="40%"}
+## Wildfire Lag Effect
+
+-   Key takeaway: wildfire exposure is associated with higher next-day AQI, with effects concentrated in short lags (0–3 days).
+:::
+
+::: {.column width="60%"}
+![](images/LagCoeff.png){width="100%"}
+:::
+:::::
+
+## Cumulative Wildfire Effect
+
+-   Cumulative effect over lags 0–3 days:
+    -   Mean ≈ 4.95 AQI increase
+    -   95% credible interval ≈ \[4.63, 5.27\]
+    -   Probability positive ≈ 1.
+
+::::: columns
+::: {.column width="40%"}
+## Posterior Predictive Check
+
+-   Model reproduces the main AQI distribution.
+-   Some mismatch in extreme right tail.
+-   Indicates difficulty modeling extreme events.
+:::
+
+::: {.column width="60%"}
+![](images/PosteriorPred.png){width="100%"}
+:::
+:::::
+
+::::: columns
+::: {.column width="40%"}
+## Residual Diagnostics
+
+-   Residual variance increases at higher AQI levels.
+-   Suggests heteroskedasticity during severe pollution days.
+:::
+
+::: {.column width="60%"}
+![](images/residual.png){width="100%"}
+:::
+:::::
+
+::::: columns
+::: {.column width="40%"}
+## Heavy-Tail Modeling
+
+-   Student-t likelihood used to capture extreme pollution spikes.
+-   Estimated degrees of freedom ≈ 3.9.
+-   Indicates heavy-tailed AQI distribution.
+
+### Key takeaway:
+
+-   Strongest wildfire association occurs at lag 3, with a clearly positive 95% credible interval.
+:::
+
+::: {.column width="60%"}
+![](images/TdistCoef.png){width="100%"}
+:::
+:::::
+
+
+## Gaussian vs Student-t
+
+- Gaussian: thin tails → extremes inflate σ and can distort uncertainty.
+- Student-t: heavy tails (small ν) → handles spikes without over-inflating σ.
+
+- Robustness: wildfire lag effects (esp. lag 3) stay positive in both models; Student-t is often cleaner/stronger because outliers have less leverage.
+
+
+## Remaining Limitations
+
+-   wildfire hotspots are only proxies for smoke transport
+-   wind direction treated linearly
+-   lag coefficients may trade off due to correlation
+-   extreme AQI days remain hard to predict
+
+## Research Question 2
+
+-   RQ2 (Forecast lift): Does adding wildfire exposure features improve next-day AQI point-forecast accuracy,
+-   with emphasis on extreme days (e.g., top decile AQI) where Case 1 failed?
+
+## RQ2 Goal & Setup
+
+-   Question: Does adding wildfire exposure features improve next-day AQI point forecasts?
+
+-   Emphasis: extreme days (top-decile next-day AQI) where Case Study 1 failed
+
+-   We compare Baseline vs +Wildfire across three model families:
+
+    -   OLS
+    -   Neural Network (MLP)
+    -   LSTM
+
+## Handling Missing Values
+
+Data sources include station outages and missing predictors.
+
+Strategy:
+
+-   Drop rows with missing target AQI(t+1)
+
+-   For missing predictors:
+
+    -   simple imputation (e.g., forward fill / median by station) OR
+    -   complete-case filtering for model-ready rows
+
+Report final sample size:
+
+-   Remaining observations: N = 18523 (original: 33496)
+-   Remaining stations: S = 21
+
+Avoiding Data Leakage
+
+-   We fit the imputer only on the training data and then transform both training and testing data.
+
+::::: columns
+::: {.column width="40%"}
+## Result
+
+overall performance comparison
+:::
+
+::: {.column width="60%"}
+![](images/RQ2OverallComp.png){width="100%"}
+:::
+:::::
+
+::::: columns
+::: {.column width="40%"}
+## Result
+
+extreme days performance comparison
+:::
+
+::: {.column width="60%"}
+![](images/RQ2ExtremeComp.png){width="100%"}
+:::
+:::::
+
+## Interpretation
+
+-   Overall: OLS ≈ LSTM; NN worse
+-   Extreme days: NN baseline best; +Wildfire slightly worse (all models)
+-   Business: no strong smoke-day lift; avoid over-claim
+-   Action: deploy OLS baseline; wildfire for monitoring/explanation
+-   Next: transport-aware features; extreme-focused training
+
+## Research Question 3
+
+-   RQ3 (Operational signal):
+
+Can we produce a stable, interpretable wildfire-risk signal (feature + diagnostics) that supports stakeholder-facing explanations and monitoring?
+
+## Define the Operational Signal
+
+-   Operational target: “High AQI tomorrow” event
+-   Definition: next-day AQI in the top 10% (binary outcome)
+-   Why this helps stakeholders: a single number for alerts + dashboards
+
+::::: columns
+::: {.column width="40%"}
+## Procedures
+
+### Step 1: Define the Monitored Outcome
+
+Create a binary “high-AQI tomorrow” event (e.g., top 10% of next-day AQI).
+
+### Step 2: Fit an Interpretable Risk Model
+
+Train a Bayesian hierarchical logistic regression.
+
+The model’s wildfire exposure features, especially the 3-day lag, meaningfully increase the probability of a high-AQI day tomorrow.
+:::
+
+::: {.column width="60%"}
+![](images/RQ3Coeff.png){width="100%"}
+:::
+:::::
+
+## Result: Wildfire Increases High-AQI Risk
+
+-   Focus on the most actionable term: lag-3 wildfire exposure (k3)
+-   Coefficient (log-odds): ≈ 0.45
+-   Odds ratio: exp(0.45) ≈ 1.57
+-   → \~57% higher odds of a high-AQI day per +1 SD wildfire exposure
+-   Interpretation: strongest risk signal appears with \~3-day delay
+
+## Diagnostic A: Calibration of the Risk Score
+
+-   Bin predictions into deciles of probability of high AQI next day
+-   Near-diagonal points → probabilities are reasonably calibrated
+
+::::: columns
+::: {.column width="40%"}
+## Diagnostic B: Wildfire-driven Risk Uplift
+
+Δ = P(High AQI \| WSEI) − P(High AQI \| WSEI = 0)
+
+-   Compute wildfire uplift:
+-   Interpretation:\
+    mass near 0 → wildfire has little effect on most days (good: fewer false alarms)\
+    positive tail → wildfire meaningfully increases risk on smoke-impacted days
+:::
+
+::: {.column width="60%"}
+![](images/RiskUplift.png){width="100%"}
+:::
+:::::
